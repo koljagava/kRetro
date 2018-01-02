@@ -1,0 +1,39 @@
+<div class='main-nav'>
+    <div class='navbar navbar-inverse' style="border-radius: 0px; margin-bottom: 0px;">
+        <div class='navbar-header'>
+            <button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-collapse'>
+                <span class='sr-only'>Toggle navigation</span>
+                <span class='icon-bar'></span>
+                <span class='icon-bar'></span>
+                <span class='icon-bar'></span>
+            </button>
+        </div>
+        <div class='clearfix'></div>
+        <div class='navbar-collapse collapse'>
+            <ul class='nav navbar-nav'>
+                <li [routerLinkActive]="['link-active']" *ngIf="(oUser | async)==null">
+                    <a [routerLink]="['/register']">
+                        <span class='glyphicon glyphicon-user'></span> Register
+                    </a>
+                </li>
+                <li class="form-inline" [routerLinkActive]="['link-active']" *ngIf="(oUser | async)!=null">
+                    <a [routerLink]="['/register']">
+                        <span class='glyphicon glyphicon-user'></span> Hello {{(oUser | async).username}}
+                    </a>
+                </li>
+                <li [routerLinkActive]="['link-active']">
+                    <a [routerLink]="['/home']">
+                        <span class='glyphicon glyphicon-home'></span> Home
+                    </a>
+                </li>
+                <li class="dropdown" *ngIf="(oTeams | async).length">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">Select Team
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu inverse-dropdown-menu">
+                          <li *ngFor="let team of oTeams | async"><a [routerLink]="['/board/' + team.id]">{{ team.name }}</a></li>
+                        </ul>
+                </li>                
+            </ul>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,5 @@
+{
+    "LiteDb" : {
+        "Name" : "./ServerData/kRetro.db" 
+    }
+}

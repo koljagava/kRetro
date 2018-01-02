@@ -1,0 +1,12 @@
+<h1>Team {{teamId}}</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+<ng-container *ngIf="(boardService.openedBoard | async) == null">
+    <input [(ngModel)]="retroName">
+    <button (click)="createRetro">Create new retrospective</button>
+</ng-container>
+
+<ng-container *ngIf="(boardService.openedBoard | async) != null">
+        <p>New Retro Created {{(boardService.openedBoard | async).name}}</p>
+</ng-container>
+    

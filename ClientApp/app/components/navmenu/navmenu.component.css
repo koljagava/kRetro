@@ -1,0 +1,14 @@
+.inverse-dropdown-menu {
+    background-color: #222;
+    border-color: #080808;
+  }
+  .inverse-dropdown-menu > li > a {
+    color: #999;
+  }
+  .inverse-dropdown-menu > li > a:hover {
+    color: #fff;
+    background-color: #000;
+  }
+  .inverse-dropdown-menu > .divider {
+    background-color: #000;
+  }
