@@ -26,8 +26,8 @@ namespace kRetro.Hubs
             // the connection is established; for example, in a JavaScript client,
             // the start().done callback is executed.
 
-            var userId = this.Context.Connection.GetHttpContext().Request.Query["userId"];
-            var teamId = this.Context.Connection.GetHttpContext().Request.Query["teamId"];
+            var userId = this.Context.GetHttpContext().Request.Query["userId"];
+            var teamId = this.Context.GetHttpContext().Request.Query["teamId"];
 
             if(string.IsNullOrEmpty(userId))
                 throw new ArgumentException("value expected", nameof(userId));
@@ -50,8 +50,11 @@ namespace kRetro.Hubs
             return base.OnDisconnectedAsync(exception);
         }
 
-        public void StarNewBoard(string boardName){            
-            this._boardsManager.StarNewBoardAsync(Context.ConnectionId, boardName).Wait();
+        public Task StarNewBoard(string boardName){            
+            return this._boardsManager.StarNewBoardAsync(Context.ConnectionId, boardName);
+        }
+        public Task SendCardMessage(string message){            
+            return this._boardsManager.SendCardMessageAsync(Context.ConnectionId, message);
         }
 
         public Team GetTeam(int? id)
@@ -59,7 +62,7 @@ namespace kRetro.Hubs
             if (!id.HasValue)
                 return null;
             using(var dbContext = new LiteDbContext()){
-                return dbContext.Teams.Include(t => t.Configuration).FindById(id.Value);
+                return dbContext.Teams.Include(t => t.BoardConfiguration).FindById(id.Value);
             }
         }
     }

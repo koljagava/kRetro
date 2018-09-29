@@ -1,0 +1,23 @@
+<div class="knavmenu">
+    <div class="knavmenu-item">
+        <i data-feather="menu"></i>
+    </div>
+    <!-- ko if:user()==null -->
+    <div class="knavmenu-item" data-bind="click: router.link('register')">
+        <i data-feather="log-in"></i><span>Register</span>
+    </div>
+    <!-- /ko -->
+    <!-- ko if:user()!=null -->
+    <div class="knavmenu-item">
+        <i data-feather="user"></i><span>Hello <!-- ko text:user().username --><!--/ko--></span>
+    </div>
+    <!-- /ko -->
+    <div class="knavmenu-item">
+        <i data-feather="clipboard"></i><span>Board</span>
+    </div>
+    <!-- ko if:user()!=null -->
+    <div class="knavmenu-item">
+        <i data-feather="log-out"></i><span>Logout</span>
+    </div>
+    <!-- /ko -->
+</div>

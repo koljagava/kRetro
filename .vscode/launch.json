@@ -1,22 +1,49 @@
 {
-    // Usare IntelliSense per informazioni sui possibili attributi.
-    // Al passaggio del mouse vengono visualizzate le descrizioni degli attributi esistenti.
-    // Per ulteriori informazioni, visitare: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "attach",
-            "name": "Attach to Chrome",
-            "port": 5000,
-            "webRoot": "${workspaceFolder}"
-        },
+   // Use IntelliSense to find out which attributes exist for C# debugging
+   // Use hover for the description of the existing attributes
+   // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+   "version": "0.2.0",
+   "configurations": [
+       
+   {
+    "name": "Attach to Chrome",
+    "type": "chrome",
+       "runtimeExecutable": "/usr/bin/chromium-browser",
+       "request": "attach",
+       "diagnosticLogging": true, // option to debug config problems
+       "url": "http://localhost:5000/",
+       "port": 5000,
+       "sourceMaps": true,
+       "userDataDir": "${workspaceRoot}/chromeDummyDir",
+       "webRoot": "${workspaceRoot}/build"
+},
+{
+    "name": "Launch Chrome against localhost, with sourcemaps",
+    "type": "chrome",
+    "runtimeExecutable": "/usr/bin/chromium-browser",
+    "request": "launch",
+    "diagnosticLogging": true, // option to debug config problems
+    "url": "http://localhost:5000/",
+    "sourceMaps": true,
+    // the next 2 options is to create a new chrome instance and avoid message errors
+    "runtimeArgs": [
+        "--disable-session-crashed-bubble",
+        "--disable-infobars",
+        "--disable-application-cache",
+        "--media-cache-size=1",
+        "--disk-cache-size=1"
+    ],
+    "userDataDir": "${workspaceRoot}/chromeDummyDir",
+    "webRoot": "${workspaceRoot}/wwwroot"
+  },
+
         {
             "name": ".NET Core Launch (web)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.0/kRetro.dll",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/bin/Debug/netcoreapp2.1/kRetro.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

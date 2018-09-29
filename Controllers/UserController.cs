@@ -35,6 +35,7 @@ namespace kRetro.Controllers
                 return new JsonResult(users[0]);
             }
         }
+        
         [HttpPost("[action]")]
         public JsonResult Get([FromBody] UserIdParam param)
         {
@@ -44,7 +45,7 @@ namespace kRetro.Controllers
             using (var context = new LiteDbContext())
             {
                 //TODO : what about if id is not exists?
-                var user = context.Users.FindById(param.UserId);
+                var user = context.Users.Include(u => u.Teams).FindById(param.UserId);
                 return new JsonResult(user);
             }
         }
@@ -57,10 +58,10 @@ namespace kRetro.Controllers
                 List<Team> teams;
                 if (!param.UserId.HasValue)
                 {
-                    teams = context.Teams.FindAll().ToList();
+                    teams = context.Teams.IncludeAll().FindAll().ToList();
                     return new JsonResult(teams);
                 }else{
-                    teams = context.Users.Include(u => u.Teams).FindById(param.UserId.Value).Teams;
+                    teams = context.Users.IncludeAll().FindById(param.UserId.Value).Teams;
                 }
                 return new JsonResult(teams);
             }
@@ -76,6 +77,7 @@ namespace kRetro.Controllers
                 return new JsonResult(user);
             }
         }
+        
         [HttpPost("[action]")]
         public JsonResult Create([FromBody] User user)
         {
@@ -83,7 +85,7 @@ namespace kRetro.Controllers
             {
                 var users = context.Users.Find(u => u.Username == user.Username).ToList();
                 if (users.Count != 0)
-                    throw new Exception("Error User with the same Username  already exists");
+                    throw new Exception("Error User with the same Username already exists");
 
                 context.Users.Insert(user);
 

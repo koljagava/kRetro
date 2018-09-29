@@ -9,7 +9,7 @@ namespace kRetro.BusinessLogic.Context
     {
         private string user_collection_name = "Users";
         private string team_collection_name = "Teams";
-        private string teamconfig_collection_name = "TeamConfigs";
+        private string boardconfig_collection_name = "BoardConfigs";
         private string cardgood_collection_name = "CardsGood";
         private string cardbad_collection_name = "CardsBad";
         private string action_collection_name = "Actions";
@@ -21,31 +21,29 @@ namespace kRetro.BusinessLogic.Context
         {
 
             Db = new LiteDatabase(Configuration.LightDbName);
-            var teamConfig = new TeamConfig{
+            var boardConfig = new BoardConfig{
                 WhatWorksMinutes = 3,
                 WhatWorksVotesPerUser = 3,
                 WhatDontMinutes = 3,
-                WhatDontVotesPerUser = new Dictionary<BadVoteType, int>{
-                    {BadVoteType.Facile, 2},
-                    {BadVoteType.Inaspettato, 2},
-                    {BadVoteType.Sentito, 2},                    
-                }
+                WhatDontVotesPerUser = 3,
+                ShowCardUser = false
             };
-            var teamConfigs = new List<TeamConfig>{
-                teamConfig,
-                teamConfig.Clone(),
-                teamConfig.Clone()
+
+            var boardConfigs = new List<BoardConfig>{
+                boardConfig,
+                boardConfig.Clone(),
+                boardConfig.Clone()
             };
-            if (TeamConfigs.Count()==0)
+            if (BoardConfigs.Count()==0)
             {
-                TeamConfigs.InsertBulk(teamConfigs);
+                BoardConfigs.InsertBulk(boardConfigs);
             }
 
             var teams = new List<Team>
             {
-                new Team{ Name="TaxE", Configuration = teamConfigs[0]},     
-                new Team{ Name="Corporate", Configuration = teamConfigs[1]},
-                new Team{ Name="Fiscality", Configuration = teamConfigs[2]}
+                new Team{ Name="TaxE", BoardConfiguration = boardConfigs[0]},     
+                new Team{ Name="Corporate", BoardConfiguration = boardConfigs[1]},
+                new Team{ Name="Fiscality", BoardConfiguration = boardConfigs[2]}
             };
 
             if (Teams.Count()==0)
@@ -72,12 +70,14 @@ namespace kRetro.BusinessLogic.Context
 
         private void SetUpDbStructure()
         {
-            //Indexes
+            //**Indexes**
             Teams.EnsureIndex(t=> t.Name);
+            Users.EnsureIndex(u=> u.Username);
+            Users.EnsureIndex(u=> u.Username);
             Users.EnsureIndex(u=> u.Username);
             Boards.EnsureIndex(b=> b.Date);
 
-            //Relations
+            //**Relations**
             //Users
             BsonMapper.Global.Entity<User>()
             .DbRef(u => u.Teams, team_collection_name);
@@ -86,7 +86,7 @@ namespace kRetro.BusinessLogic.Context
             BsonMapper.Global.Entity<Team>()
             .DbRef(t => t.Boards, board_collection_name);
             BsonMapper.Global.Entity<Team>()
-            .DbRef(t => t.Configuration, teamconfig_collection_name);
+            .DbRef(t => t.BoardConfiguration, boardconfig_collection_name);
             
             //Boards
             BsonMapper.Global.Entity<Board>()
@@ -124,16 +124,16 @@ namespace kRetro.BusinessLogic.Context
                 return _users;
             }
         }
-        private LiteCollection<TeamConfig> _teamConfigs;
-        public LiteCollection<TeamConfig> TeamConfigs
+        private LiteCollection<BoardConfig> _boardConfigs;
+        public LiteCollection<BoardConfig> BoardConfigs
         {
             get
             {
-                if (_teamConfigs != null){
-                    return _teamConfigs;                    
+                if (_boardConfigs != null){
+                    return _boardConfigs;                    
                 }
-                _teamConfigs = Db.GetCollection<TeamConfig>(teamconfig_collection_name);
-                return _teamConfigs;
+                _boardConfigs = Db.GetCollection<BoardConfig>(boardconfig_collection_name);
+                return _boardConfigs;
             }
         }
         private LiteCollection<Team> _teams;

@@ -1,0 +1,33 @@
+.knavmenu {
+    background: #337ab7;
+    display: inline-block;
+    white-space: nowrap;
+    width: 10px;
+    transition: width 0.5s, height 0.5s;
+    -webkit-transition: width 0.5s, height 0.5s;
+    -moz-transition: width 0.5s, height 0.5s;
+    position: absolute;
+    z-index: 800;
+}
+
+.knavmenu:hover {
+    height: auto;
+    width: 230px;
+}
+
+.knavmenu-item:hover {
+    background-color: gray;
+    cursor: pointer;
+}
+
+.knavmenu-item {
+    height: 50px;
+    overflow: hidden;
+    color: #fff;
+    text-align: left;
+
+}
+.knavmenu-item span {
+    vertical-align: middle;
+    line-height: 50px;
+}

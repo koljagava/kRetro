@@ -20,22 +20,26 @@ namespace kRetro.BusinessLogic
         {
             HubContext = context;
         }
-        private Dictionary<int, BoardManager> OpenedBoards = new Dictionary<int, BoardManager>();
+        private Dictionary<int, BoardManager> Boards = new Dictionary<int, BoardManager>();
 
         public async Task AddUserAsync(UserBoardConnection userBoard)
         {
-            await HubContext.Groups.AddAsync(userBoard.ConnectionId, userBoard.TeamId.ToString());
+            await HubContext.Groups.AddToGroupAsync(userBoard.ConnectionId, userBoard.TeamId.ToString());
             await _boardsLock.WaitAsync();
             try
             {            
-                if (OpenedBoards.ContainsKey(userBoard.TeamId))
+                if (Boards.ContainsKey(userBoard.TeamId))
                 {
-                    OpenedBoards[userBoard.TeamId].AddUser(userBoard.ConnectionId, userBoard.UserId);
+                    var board = Boards[userBoard.TeamId];
+                    board.AddUser(userBoard.ConnectionId, userBoard.UserId);
+                    if (board.Board!=null){
+                        await HubContext.Clients.Client(userBoard.ConnectionId).SendAsync("BoardUpdate", board.Board);
+                    }
                 }
                 else
                 {
                     var board = CreateBoard(userBoard, HubContext.Clients.Group(userBoard.TeamId.ToString()));
-                    OpenedBoards.Add(userBoard.TeamId, board);
+                    Boards.Add(userBoard.TeamId, board);
                 }
             }
             finally
@@ -46,8 +50,9 @@ namespace kRetro.BusinessLogic
 
         public void RemoveUser(string connectionId)
         {
-            foreach (var board in OpenedBoards.Values.Where(ob=> ob.IsConnectionIn(connectionId))){
+            foreach (var board in Boards.Values.Where(ob=> ob.IsConnectionIn(connectionId))){
                 board.RemoveUser(connectionId);
+                HubContext.Groups.RemoveFromGroupAsync(connectionId, board.TeamId.ToString());
             }
         }
 
@@ -58,7 +63,7 @@ namespace kRetro.BusinessLogic
         }
         
         private BoardManager GetBoardManager(string connectionId){
-            var bm = OpenedBoards.Values.Where(ob=> ob.IsConnectionIn(connectionId)).ToList();
+            var bm = Boards.Values.Where(ob=> ob.IsConnectionIn(connectionId)).ToList();
             if (bm.Count == 1)
                 return bm[0];
             throw new Exception($"BoardManager not found for connection Id {connectionId}");
@@ -67,6 +72,11 @@ namespace kRetro.BusinessLogic
         internal async Task StarNewBoardAsync(string connectionId, string boardName)
         {
             await GetBoardManager(connectionId).StartNewBoardAsync(connectionId, boardName);
+        }
+
+        internal async Task SendCardMessageAsync (string connectionId, string message)
+        {
+            await GetBoardManager(connectionId).SendCardMessageAsync(connectionId, message);
         }
     }
 
@@ -95,9 +105,13 @@ namespace kRetro.BusinessLogic
             BroadcastConnectedUsersUpdate().Wait();
         }
 
+        private User TryGetUserByConectionId(string connectionId){
+            return ConnectedUser.Where(ukvp=> ukvp.Value == connectionId).Select(ukvp=> ukvp.Key).FirstOrDefault();
+        }
+
         internal void RemoveUser(string connectionId)
         {
-            var user = ConnectedUser.Where(cu => cu.Value == connectionId).Select(cu=> cu.Key).FirstOrDefault();
+            var user = TryGetUserByConectionId(connectionId);
             if (user!=null)
                 ConnectedUser.Remove(user);
             //BroadCast Messages for UpdatedConnectedUser
@@ -105,15 +119,15 @@ namespace kRetro.BusinessLogic
         }
 
         private async Task BroadcastConnectedUsersUpdate()
-        {            
-            await Group.InvokeAsync("ConnectedUsersUpdate", ConnectedUser.Keys);
+        {
+            await Group.SendAsync("ConnectedUsersUpdate", ConnectedUser.Keys);
         }
 
         private User GetConnectedUser(string connectionId){
-            var user = ConnectedUser.Where(cu => cu.Value == connectionId).ToList();
-            if (user.Count == 1)
-                return user[0].Key;
-            throw new Exception($"ConnectedUser not found for connection Id {connectionId}");
+            var user = TryGetUserByConectionId(connectionId);
+            if (user == null)
+                throw new Exception($"ConnectedUser not found for connection Id {connectionId}");
+            return user;
         }
         internal bool IsConnectionIn(string connectionId){
             return ConnectedUser.Values.Any(cid=> cid == connectionId);
@@ -137,16 +151,56 @@ namespace kRetro.BusinessLogic
                     team.Boards.Add(Board);
                     context.Teams.Update(team);
                 }
-                await BroadcastOpenedBoardUpdate();
+                await BroadcastBoardUpdate();
             }
             finally
             {
                 _boardLock.Release();
             }            
         }
-        private async Task BroadcastOpenedBoardUpdate()
+
+        internal async Task SendCardMessageAsync(string connectionId, string message)
         {
-            await Group.InvokeAsync("OpenedBoardUpdate", Board);
+            await _boardLock.WaitAsync();
+            try
+            {
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+                
+                switch (Board.Status){
+                    case BoardStatus.OpenWhatWorks:
+                        Board.WhatWorks.Add(new CardGood{
+                            Message = message,
+                            CreationDateTime = DateTime.Now,
+                            User = GetConnectedUser(connectionId),
+                            Visible = true
+                        });
+                    break;
+                    case BoardStatus.OpenWhatDont:
+                        Board.WhatDont.Add(new CardBad{
+                            Message = message,
+                            CreationDateTime = DateTime.Now,
+                            User = GetConnectedUser(connectionId),
+                            Visible = true
+                        });
+                    break;
+                    default:
+                    throw new Exception("It is not  time to add cards.");
+                }
+                using(var context = new LiteDbContext()){
+                    context.Boards.Update(Board);
+                }
+                await BroadcastBoardUpdate();
+            }
+            finally
+            {
+                _boardLock.Release();
+            }            
+        }
+
+        private async Task BroadcastBoardUpdate()
+        {
+            await Group.SendAsync("BoardUpdate", Board);
         }
     }
 }

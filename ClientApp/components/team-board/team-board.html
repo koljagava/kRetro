@@ -1,0 +1,88 @@
+<div class="container-fluid kcontent row">
+  <div class="col-md-2 kcontent bg-secondary text-light">
+    <!-- ko if : userService.boardService() != null && userService.boardService().board() == null-->
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-secondary">
+          <h5 class="modal-title">Create new Board</h5>
+        </div>
+        <div class="modal-body bg-secondary">
+          <div class="form-label-group">
+            <input data-bind="value:boardName" type="text" id="boardName" class="form-control" placeholder="Board name" required autofocus>
+          </div>     
+        </div>
+        <div class="modal-footer bg-secondary">
+            <button data-bind="click:createBoard" type="button" class="btn btn-primary">Create</button>
+        </div>
+      </div>
+    </div>
+    <!-- /ko-->
+    <!-- ko if : ((userService.boardService() != null) && (userService.boardService().board() != null)) -->
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-secondary">
+          <h5 class="modal-title">Active Board</h5>
+        </div>
+        <div class="modal-body bg-secondary">
+          <div data-bind="text:userService.boardService().board().name" class="form-label-group"></div>
+          <div class="form-label-group"><label data-bind="text:boardStatus[userService.boardService().board().status]"></label></div>
+        </div>
+      </div>
+    </div>
+    <!-- /ko-->    
+    <!-- ko if : ((userService.boardService() != null) && (userService.boardService().board() != null) && (userService.boardService().board().manager.id == userService.currentUser().id)) -->
+    <!-- ko if : test()--> <!-- /ko -->
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-secondary">
+          <h5 class="modal-title">Board Configuration</h5>
+        </div>
+        <div class="modal-body bg-secondary">
+          <div class="form-label-group">
+            <label>What works</label>
+            <div class="input-group-prepend">
+              <span class="input-group-text">minutes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+              <input data-bind="value:userService.currentTeam().boardConfiguration.whatWorksMinutes"  type="number" class="form-control">
+            </div>              
+            <div class="input-group-prepend">
+              <span class="input-group-text">votes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+              <input data-bind="value:userService.currentTeam().boardConfiguration.whatWorksVotesPerUser" type="number" class="form-control">
+            </div>              
+          </div>
+          <div class="form-label-group">
+            <label>What desn't work (minutes)</label>
+            <div class="input-group-prepend">
+              <span class="input-group-text">minutes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+              <input data-bind="value:userService.currentTeam().boardConfiguration.whatDontMinutes"  type="number" class="form-control">
+            </div>              
+            <div class="input-group-prepend">
+              <span class="input-group-text">votes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+              <input data-bind="value:userService.currentTeam().boardConfiguration.whatDontVotesPerUser" type="number" class="form-control">
+            </div>              
+          </div>         
+          <div class="form-label-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Show Card User :</span>
+                <input data-bind="value:userService.currentTeam().boardConfiguration.showCardUser"  type="checkbox" class="form-control">
+            </div>              
+          </div>         
+        </div>
+      </div>
+    </div>
+      <!-- /ko-->    
+    <div class="modal-dialog bg-secondary" role="document">
+      <div class="modal-content bg-secondary">
+        <div class="modal-header">
+          <h5 class="modal-title">Online Users</h5>
+        </div>
+        <div class="modal-body">
+          <!-- ko if : userService.boardService() != null -->
+          <ul data-bind="foreach:userService.boardService().connectedUsers">
+            <li data-bind="text: $parent.getUserName($data)"></li>
+          </ul>
+          <!-- /ko-->
+        </div>
+      </div>  
+    </div>
+</div>
+<div class="col-md-10 kcontent">content</div>

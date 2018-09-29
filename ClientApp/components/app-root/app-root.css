@@ -1,0 +1,59 @@
+html {
+    font-family: "Arial Black", Gadget, sans-serif;
+    font-size: 80%;
+    height: 100%;
+  }
+  html body {
+    height: 100%;
+    overflow: hidden;
+  }
+  html body .container-fluid.body-content {
+    position: absolute;
+    top: 30px;
+    bottom: 30px;
+    right: 0;
+    left: 0;
+    overflow-y: auto;
+  }
+
+  .container-fluid.kcontent {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    right: 0;
+    left: 0;
+    overflow-y: auto;
+  }
+
+  header {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      background: red;
+      height: 30px;
+      padding: 0px;
+      border: 0px;
+  }
+  footer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 30px;
+      background: red;
+  }
+  .inverse-dropdown-menu {
+    background-color: #222;
+    border-color: #080808;
+  }
+  .inverse-dropdown-menu > li > a {
+    color: #999;
+  }
+  .inverse-dropdown-menu > li > a:hover {
+    color: #fff;
+    background-color: #000;
+  }
+  .inverse-dropdown-menu > .divider {
+    background-color: #000;
+}

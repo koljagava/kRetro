@@ -49,14 +49,14 @@ namespace kRetro
             app.UseStaticFiles();
 
             app.UseSignalR(routes => {
-                routes.MapHub<BoardsHub>("boards");
+                routes.MapHub<BoardsHub>("/boards");
             });
 
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}");
+                    template: "{controller=Home}/{action=Index}/{id?}");
 
                 routes.MapSpaFallbackRoute(
                     name: "spa-fallback",
