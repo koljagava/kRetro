@@ -32,9 +32,8 @@ namespace kRetro.BusinessLogic
                 {
                     var board = Boards[userBoard.TeamId];
                     board.AddUser(userBoard.ConnectionId, userBoard.UserId);
-                    if (board.Board!=null){
+                    if (board.Board!=null)
                         await HubContext.Clients.Client(userBoard.ConnectionId).SendAsync("BoardUpdate", board.Board);
-                    }
                 }
                 else
                 {
@@ -78,6 +77,10 @@ namespace kRetro.BusinessLogic
         {
             await GetBoardManager(connectionId).SendCardMessageAsync(connectionId, message);
         }
+
+        internal async Task ChangeBoardStatusAsync(string connectionId, BoardStatus boardStatus){
+            await GetBoardManager(connectionId).ChangeBoardStatusAsync(connectionId, boardStatus);
+        }
     }
 
 
@@ -85,7 +88,7 @@ namespace kRetro.BusinessLogic
         public Dictionary<User, string> ConnectedUser {get;set;} = new Dictionary<User, string>();
         public int TeamId {get;set;}
         public Board Board {get;set;}
-        public Timer BoardTimer {get;set;}
+        public System.Timers.Timer BoardTimer {get;set;}
         public IClientProxy Group {get;set;}
         private readonly SemaphoreSlim _boardLock = new SemaphoreSlim(1, 1);
 
@@ -168,7 +171,7 @@ namespace kRetro.BusinessLogic
                     throw new Exception("Board does not exists.");
                 
                 switch (Board.Status){
-                    case BoardStatus.OpenWhatWorks:
+                    case BoardStatus.WhatWorksOpened:
                         Board.WhatWorks.Add(new CardGood{
                             Message = message,
                             CreationDateTime = DateTime.Now,
@@ -176,7 +179,7 @@ namespace kRetro.BusinessLogic
                             Visible = true
                         });
                     break;
-                    case BoardStatus.OpenWhatDont:
+                    case BoardStatus.WhatDontOpened:
                         Board.WhatDont.Add(new CardBad{
                             Message = message,
                             CreationDateTime = DateTime.Now,
@@ -185,7 +188,7 @@ namespace kRetro.BusinessLogic
                         });
                     break;
                     default:
-                    throw new Exception("It is not  time to add cards.");
+                    throw new Exception("It is not time to add cards.");
                 }
                 using(var context = new LiteDbContext()){
                     context.Boards.Update(Board);
@@ -197,6 +200,27 @@ namespace kRetro.BusinessLogic
                 _boardLock.Release();
             }            
         }
+
+        internal async Task ChangeBoardStatusAsync(string connectionId, BoardStatus boardStatus){
+            await _boardLock.WaitAsync();
+            try
+            {
+                //TODO 0: allow status change only to board manager
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+                
+                Board.Status = boardStatus;
+
+                using(var context = new LiteDbContext()){
+                    context.Boards.Update(Board);
+                }
+                await BroadcastBoardUpdate();
+            }
+            finally
+            {
+                _boardLock.Release();
+            }            
+        }        
 
         private async Task BroadcastBoardUpdate()
         {

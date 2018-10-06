@@ -9,13 +9,12 @@ html {
   }
   html body .container-fluid.body-content {
     position: absolute;
-    top: 30px;
-    bottom: 30px;
+    top: 0px;
+    bottom: 0px;
     right: 0;
     left: 0;
     overflow-y: auto;
   }
-
   .container-fluid.kcontent {
     position: absolute;
     top: 0px;
@@ -25,23 +24,23 @@ html {
     overflow-y: auto;
   }
 
-  header {
+  .kheader {
       position: absolute;
       left: 0;
       right: 0;
       top: 0;
-      background: red;
       height: 30px;
       padding: 0px;
       border: 0px;
+      text-align: center;
+      font-size: large;
   }
-  footer {
+  .kfooter {
       position: absolute;
       left: 0;
       right: 0;
       bottom: 0;
       height: 30px;
-      background: red;
   }
   .inverse-dropdown-menu {
     background-color: #222;

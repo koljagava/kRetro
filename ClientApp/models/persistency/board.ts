@@ -5,13 +5,13 @@ import {Action} from "./action";
 
 export enum BoardStatus {
     New = 0,
-    OpenWhatWorks = 1,
-    CloseWhatWorks = 2,
-    OpenWhatDont = 3,
-    CloseWhatDont = 4,
-    OpenActions = 5,
-    CloseActions = 6,
-    Close = 7
+    WhatWorksOpened = 1,
+    WhatWorksClosed = 2,
+    WhatDontOpened = 3,
+    WhatDontClosed = 4,
+    ActionsOpened = 5,
+    ActionsClosed = 6,
+    Closed = 7
 };
 
 export class Board {

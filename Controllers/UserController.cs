@@ -55,13 +55,14 @@ namespace kRetro.Controllers
         {
             using (var context = new LiteDbContext())
             {
-                List<Team> teams;
+                List<Team> teams = new List<Team>();
                 if (!param.UserId.HasValue)
                 {
                     teams = context.Teams.IncludeAll().FindAll().ToList();
                     return new JsonResult(teams);
                 }else{
-                    teams = context.Users.IncludeAll().FindById(param.UserId.Value).Teams;
+                    var uTeamIds = context.Users.FindById(param.UserId.Value).Teams.Select(t => t.Id).ToList();
+                    teams = context.Teams.Include(t => t.BoardConfiguration).Find(t=> uTeamIds.Exists(utId=> utId == t.Id)).ToList();
                 }
                 return new JsonResult(teams);
             }

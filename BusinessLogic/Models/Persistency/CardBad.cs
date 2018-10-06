@@ -17,6 +17,6 @@ namespace kRetro.BusinessLogic.Models.Persistency
 
     public class CardBad : CardBase
     {
-        public List<BadVote> Votes {get;set;}
+        public List<BadVote> Votes {get;set;} = new List<BadVote>();
     }
 }

@@ -3,11 +3,13 @@ import {Team} from '../models/persistency/team';
 import {Board, BoardStatus} from '../models/persistency/board';
 import * as signalR from "@aspnet/signalr";
 import { User } from '../models/persistency/user';
+//import * as komap from 'knockout-mapping';
 
 export class BoardService {
     private boardHub : signalR.HubConnection|null = null;
     public connectedUsers = ko.observableArray<User>(new Array<User>());
-    public board = ko.observable<Board>(null);
+    //public board : KnockoutObservable<KnockoutObservableType<Board>> = ko.observable<KnockoutObservableType<Board>>(null);
+    public board : KnockoutObservable<Board> = ko.observable<Board>(null);
 
     constructor(public user: KnockoutObservable<User> , public team : KnockoutObservable<Team>) {         
     }
@@ -47,7 +49,9 @@ export class BoardService {
             throw new Error("board is not opened.");
         if (this.board().manager.id != this.user().id)
             throw new Error("only board manager can change board status");
-        this.boardHub.invoke("")
+        this.boardHub.invoke("ChangeBoardStatus", status).catch((reason:any)=>{
+            throw new Error(reason);
+        });
     }
 
     private connectedUserUpdate = (users : Array<User>) : void => {
@@ -58,5 +62,6 @@ export class BoardService {
     private boardUpdate = (board : Board) : void => {
         if(board!= null)
             this.board(board);
+            //this.board(komap.fromJS(board, {}, this.board()));
     }
 }

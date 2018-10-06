@@ -8,6 +8,6 @@ namespace kRetro.BusinessLogic.Models.Persistency
         public string Password {get;set;}
         public string FirstName {get;set;}
         public string LastName {get;set;}
-        public List<Team> Teams {get;set;}
+        public List<Team> Teams {get;set;} = new List<Team>();
     }
 }
