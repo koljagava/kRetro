@@ -8,6 +8,7 @@ using System.Linq;
 using kRetro.BusinessLogic.Models.Comunication;
 using System.Threading.Tasks;
 using System;
+using System.Timers;
 
 namespace kRetro.BusinessLogic
 {
@@ -51,12 +52,12 @@ namespace kRetro.BusinessLogic
         {
             foreach (var board in Boards.Values.Where(ob=> ob.IsConnectionIn(connectionId))){
                 board.RemoveUser(connectionId);
-                HubContext.Groups.RemoveFromGroupAsync(connectionId, board.TeamId.ToString());
+                HubContext.Groups.RemoveFromGroupAsync(connectionId, board.Team.Id.ToString());
             }
         }
 
         private BoardManager CreateBoard(UserBoardConnection userBoard, IClientProxy group){
-            var board = new BoardManager{TeamId = userBoard.TeamId, Group = group};
+            var board = new BoardManager(userBoard.TeamId, group);
             board.AddUser(userBoard.ConnectionId, userBoard.UserId);
             return board;
         }
@@ -78,20 +79,59 @@ namespace kRetro.BusinessLogic
             await GetBoardManager(connectionId).SendCardMessageAsync(connectionId, message);
         }
 
-        internal async Task ChangeBoardStatusAsync(string connectionId, BoardStatus boardStatus){
-            await GetBoardManager(connectionId).ChangeBoardStatusAsync(connectionId, boardStatus);
+        internal async Task ChangeBoardStatusAsync(string connectionId, bool isInternalCall){
+            await GetBoardManager(connectionId).ChangeBoardStatusAsync(isInternalCall, connectionId);
         }
     }
 
 
     public class BoardManager {
         public Dictionary<User, string> ConnectedUser {get;set;} = new Dictionary<User, string>();
-        public int TeamId {get;set;}
-        public Board Board {get;set;}
-        public System.Timers.Timer BoardTimer {get;set;}
-        public IClientProxy Group {get;set;}
+        public Team Team {get;private set;}
+        public Board Board {get;private set;}
+        public System.Timers.Timer BoardTimer {get;set;} 
+        public int ElapsedMinutes {get;private set;}
+        public IClientProxy Group {get;private set;}
         private readonly SemaphoreSlim _boardLock = new SemaphoreSlim(1, 1);
 
+        public BoardManager(int teamId, IClientProxy group){
+            this.Group = group;
+            using(var context = new LiteDbContext()){
+                Team = context.Teams.Include(t=> t.BoardConfiguration).FindById(teamId); 
+            }
+            BoardTimer = new System.Timers.Timer(60000);
+            BoardTimer.Enabled=false;
+            BoardTimer.AutoReset=true;
+            BoardTimer.Elapsed += OnOneMinutePassed;
+        }
+        private void OnOneMinutePassed(Object source, ElapsedEventArgs e)
+        {
+            ElapsedMinutes++;
+            int minutes=0;
+            switch(Board.Status)
+            {
+                case BoardStatus.WhatWorksOpened:
+                    minutes = Team.BoardConfiguration.WhatWorksMinutes;
+                    break;
+                case BoardStatus.WhatDesntOpened:
+                    minutes = Team.BoardConfiguration.WhatDontMinutes;
+                    break;
+                default:
+                    return;
+            }
+            if (Math.Round((decimal)((minutes+1) / 2)) == ElapsedMinutes || minutes == ElapsedMinutes){
+                if (minutes == ElapsedMinutes){
+                    BoardTimer.Stop();
+                    ChangeBoardStatusAsync(true, null).Wait();
+                    Group.SendAsync("SendMessage", "Cards insert disabled.");
+                    return;
+                }
+                Group.SendAsync("PublishCards").Wait();
+            }
+            if ((minutes - ElapsedMinutes)<=1){
+                Group.SendAsync("SendMessage", "One minute left.").Wait();
+            }
+        }        
         internal void AddUser(string connectionId, int userId)
         {
             var user = ConnectedUser.Keys.FirstOrDefault(u=> u.Id == userId);
@@ -123,7 +163,7 @@ namespace kRetro.BusinessLogic
 
         private async Task BroadcastConnectedUsersUpdate()
         {
-            await Group.SendAsync("ConnectedUsersUpdate", ConnectedUser.Keys);
+            await Group.SendAsync("ConnectedUsersUpdate", ConnectedUser.Keys); 
         }
 
         private User GetConnectedUser(string connectionId){
@@ -150,9 +190,8 @@ namespace kRetro.BusinessLogic
                 };
                 using(var context = new LiteDbContext()){
                     context.Boards.Insert(Board);
-                    var team = context.Teams.FindById(TeamId);
-                    team.Boards.Add(Board);
-                    context.Teams.Update(team);
+                    Team.Boards.Add(Board);
+                    context.Teams.Update(Team);
                 }
                 await BroadcastBoardUpdate();
             }
@@ -179,7 +218,7 @@ namespace kRetro.BusinessLogic
                             Visible = true
                         });
                     break;
-                    case BoardStatus.WhatDontOpened:
+                    case BoardStatus.WhatDesntOpened:
                         Board.WhatDont.Add(new CardBad{
                             Message = message,
                             CreationDateTime = DateTime.Now,
@@ -201,20 +240,59 @@ namespace kRetro.BusinessLogic
             }            
         }
 
-        internal async Task ChangeBoardStatusAsync(string connectionId, BoardStatus boardStatus){
+        internal async Task ChangeBoardStatusAsync(bool isInternalCall, string connectionId){
             await _boardLock.WaitAsync();
             try
             {
-                //TODO 0: allow status change only to board manager
+                //TODO 0: allow status change only to board manager if is not an internalCall
                 if (Board==null)
                     throw new Exception("Board does not exists.");
-                
-                Board.Status = boardStatus;
 
-                using(var context = new LiteDbContext()){
-                    context.Boards.Update(Board);
+                var actualStatus = this.Board.Status;
+                var nextStatus = actualStatus;
+
+                switch(actualStatus)
+                {
+                    case BoardStatus.New :
+                        nextStatus = BoardStatus.WhatWorksOpened;
+                        BoardTimer.Start();
+                        await Group.SendAsync("SendMessage", "Time started for \"What Works\", please write your cards.");
+                        break;
+                    case BoardStatus.WhatWorksOpened:
+                        if (!isInternalCall)
+                            throw new Exception("THis status Changes can not be done by user.");
+                        nextStatus = BoardStatus.WhatWorksClosed;
+                        await Group.SendAsync("SendMessage", " please do your votes.");
+                        break;
+                    case BoardStatus.WhatWorksClosed:
+                        nextStatus = BoardStatus.WhatDesntOpened;
+                        BoardTimer.Start();
+                        await Group.SendAsync("SendMessage", "Time started for \"What Doesn't\", please write your cards.");
+                        break;
+                    case BoardStatus.WhatDesntOpened:
+                        if (!isInternalCall)
+                            throw new Exception("THis status Changes can not be done by user.");
+                        nextStatus = BoardStatus.WhatDesntClosed;
+                        await Group.SendAsync("SendMessage", " please do your votes.");
+                        break;
+                    case BoardStatus.WhatDesntClosed:
+                        nextStatus = BoardStatus.ActionsOpened;
+                        break;
+                    case BoardStatus.ActionsOpened:
+                        nextStatus = BoardStatus.ActionsClosed;
+                        break;
+                    case BoardStatus.ActionsClosed:
+                        nextStatus = BoardStatus.Closed;
+                        break;
                 }
-                await BroadcastBoardUpdate();
+                if (actualStatus != nextStatus){
+                    Board.Status = nextStatus;
+
+                    using(var context = new LiteDbContext()){
+                        context.Boards.Update(Board);
+                    }
+                    await BroadcastBoardUpdate();
+                }
             }
             finally
             {

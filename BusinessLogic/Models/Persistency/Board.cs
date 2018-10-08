@@ -7,8 +7,8 @@ namespace kRetro.BusinessLogic.Models.Persistency
         New = 0,
         WhatWorksOpened = 1,
         WhatWorksClosed = 2,
-        WhatDontOpened = 3,
-        WhatDontClosed = 4,
+        WhatDesntOpened = 3,
+        WhatDesntClosed = 4,
         ActionsOpened = 5,
         ActionsClosed = 6,
         Closed = 7

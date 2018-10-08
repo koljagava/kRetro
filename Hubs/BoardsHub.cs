@@ -56,8 +56,8 @@ namespace kRetro.Hubs
         public Task SendCardMessage(string message){            
             return this._boardsManager.SendCardMessageAsync(Context.ConnectionId, message);
         }
-        public Task ChangeBoardStatus(BoardStatus boardStatus){            
-            return this._boardsManager.ChangeBoardStatusAsync(Context.ConnectionId, boardStatus);
+        public Task ChangeBoardStatus(){            
+            return this._boardsManager.ChangeBoardStatusAsync(Context.ConnectionId, false);
         }
 
         public Team GetTeam(int? id)

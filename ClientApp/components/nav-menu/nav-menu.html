@@ -1,23 +1,31 @@
+<div class="knavmenu-block">
+    <div class="knavmenu-item">
+        <div data-bind="html:feather.icons['menu'].toSvg({'margin-top': '2px', 'margin-left': '2px'})"></div>
+    </div>
+</div>    
 <div class="knavmenu">
     <div class="knavmenu-item">
-        <i data-feather="menu"></i>
+        <div data-bind="html:feather.icons['menu'].toSvg({'margin-top': '2px', 'margin-left': '2px'})"></div>
     </div>
-    <!-- ko if:user()==null -->
-    <div class="knavmenu-item" data-bind="click: router.link('register')">
-        <i data-feather="log-in"></i><span>Register</span>
+    <!-- ko if: userService.currentUser()==null -->
+    <div class="knavmenu-item">
+        <a data-bind="attr:{href: router.link('login')}"><span data-bind="html:feather.icons['log-in'].toSvg()"></span><span>Login</span></a>
+    </div>
+    <div class="knavmenu-item">
+        <a data-bind="attr:{href: router.link('register')}"><span data-bind="html:feather.icons['user'].toSvg()"></span><span>Register</span></a>
     </div>
     <!-- /ko -->
-    <!-- ko if:user()!=null -->
+    <!-- ko if: userService.currentUser()!=null -->
     <div class="knavmenu-item">
-        <i data-feather="user"></i><span>Hello <!-- ko text:user().username --><!--/ko--></span>
+        <a data-bind="attr:{href: router.link('register')}"><span data-bind="html:feather.icons['user'].toSvg()"></span><span>Hello <!-- ko text: userService.getUserName(userService.currentUser())--><!--/ko--></span></a>
     </div>
     <!-- /ko -->
     <div class="knavmenu-item">
-        <i data-feather="clipboard"></i><span>Board</span>
+        <a data-bind="attr:{href: router.link('')}"><span data-bind="html:feather.icons['clipboard'].toSvg()"></span><span>Board</span></a>
     </div>
-    <!-- ko if:user()!=null -->
-    <div class="knavmenu-item">
-        <i data-feather="log-out"></i><span>Logout</span>
+    <!-- ko if: userService.currentUser()!=null -->
+    <div class="knavmenu-item" data-bind="click: userService.logout">
+        <span data-bind="html:feather.icons['log-out'].toSvg()"></span><span>Logout</span>
     </div>
     <!-- /ko -->
 </div>

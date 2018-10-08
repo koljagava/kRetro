@@ -42,21 +42,20 @@ export class Router {
                 }
             }
         };
-
         $(document).on('click', 'a', this.clickEventListener);
 
         // Initialize Crossroads with starting location
         crossroads.parse(history.location.pathname);
     }
 
-    public link(url: string): string {
-        return this.history.createHref({ pathname: url });
+    public link = (url: string): string => {
+        return this.history.createHref({ pathname: url }); 
     }
 
     public dispose() {
         this.disposeHistory();
         $(document).off('click', 'a', this.clickEventListener);
-    }
+    }   
 }
 
 export interface Route {

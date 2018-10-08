@@ -43,7 +43,7 @@ namespace kRetro.BusinessLogic.Context
             {
                 new Team{ Name="TaxE", BoardConfiguration = boardConfigs[0]},     
                 new Team{ Name="Corporate", BoardConfiguration = boardConfigs[1]},
-                new Team{ Name="Fiscality", BoardConfiguration = boardConfigs[2]}
+                new Team{ Name="Tax & Transversal", BoardConfiguration = boardConfigs[2]}
             };
 
             if (Teams.Count()==0)
@@ -56,13 +56,13 @@ namespace kRetro.BusinessLogic.Context
                 {
                     Username = "kolja",
                     Password = "kolja",
-                    Teams = teams
+                    Teams = new List<Team>{teams[2]}
                 });
                 Users.Insert(new User
                 {
                     Username = "kota",
                     Password = "kota",
-                    Teams = teams
+                    Teams = new List<Team>{teams[2]}
                 });
             }
             SetUpDbStructure();

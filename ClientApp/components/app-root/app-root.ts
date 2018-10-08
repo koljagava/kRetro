@@ -8,7 +8,6 @@ import * as History from 'history';
 import { Route, Router } from '../../router';
 import navMenu from '../nav-menu/nav-menu';
 import {UserService} from '../../services/user.service';
-import {icons} from 'feather-icons';
 import './app-root.css';
 
 // Declare the client-side routing configuration
@@ -16,9 +15,9 @@ const routes: Route[] = [
     // { url: '',              params: { page: 'home-page' }, canActivate : UserService.canActivate },
     // { url: 'counter',       params: { page: 'counter-example',}, canActivate : UserService.canActivate },
     // { url: 'fetch-data/:id:',    params: { page: 'fetch-data' }, canActivate : UserService.canActivate },
-    { url: 'register',    params: { page: 'register' }},
-    { url: 'login/:caller:',    params: { page: 'login' }},
-    { url: '',    params: { page: 'board' }, canActivate : UserService.canActivate }
+    { url: 'register', params: { page: 'register' }},
+    { url: 'login/:caller:', params: { page: 'login' }},
+    { url: '', params: { page: 'board' }, canActivate : UserService.canActivate }
 ];
 
 class AppRootViewModel {
@@ -29,17 +28,12 @@ class AppRootViewModel {
         // Activate the client-side router
         this.router = new Router(params.history, routes, params.basename);
         this.route = this.router.currentRoute;
-        const a = icons;
-        const b = icons;
 
         // Load and register all the KO components needed to handle the routes
         // The optional 'bundle-loader?lazy!' prefix is a Webpack feature that causes the referenced modules
         // to be split into separate files that are then loaded on demand.
         // For docs, see https://github.com/webpack/bundle-loader
         ko.components.register('nav-menu', navMenu);
-        // ko.components.register('home-page', require('bundle-loader?lazy!../home-page/home-page'));
-        // ko.components.register('counter-example', require('bundle-loader?lazy!../counter-example/counter-example'));
-        // ko.components.register('fetch-data', require('bundle-loader?lazy!../fetch-data/fetch-data'));
         ko.components.register('login', require('bundle-loader?lazy!../login/login'));
         ko.components.register('register', require('bundle-loader?lazy!../register/register'));
         ko.components.register('board', require('bundle-loader?lazy!../team-board/team-board'));

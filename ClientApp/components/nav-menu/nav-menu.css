@@ -1,8 +1,21 @@
+.knavmenu-block {
+    background: #337ab7;
+    display: inline-block;
+    white-space: nowrap;
+    width: 30px;
+    height: 30px;
+    transition: width 0.5s, height 0.5s;
+    -webkit-transition: width 0.5s, height 0.5s;
+    -moz-transition: width 0.5s, height 0.5s;
+    position: absolute;
+    z-index: 799;
+}
+
 .knavmenu {
     background: #337ab7;
     display: inline-block;
     white-space: nowrap;
-    width: 10px;
+    width: 0px;
     transition: width 0.5s, height 0.5s;
     -webkit-transition: width 0.5s, height 0.5s;
     -moz-transition: width 0.5s, height 0.5s;
@@ -10,24 +23,46 @@
     z-index: 800;
 }
 
+.knavmenu-block:hover + .knavmenu {
+    width: 200px;
+}
+
 .knavmenu:hover {
-    height: auto;
-    width: 230px;
+    width: 200px;
 }
 
 .knavmenu-item:hover {
+    position: relative;
     background-color: gray;
     cursor: pointer;
 }
 
 .knavmenu-item {
-    height: 50px;
+    position: relative;
+    height: 30px;
     overflow: hidden;
     color: #fff;
     text-align: left;
 
 }
 .knavmenu-item span {
+    position: relative;
     vertical-align: middle;
-    line-height: 50px;
+    line-height: 30px;
+}
+.knavmenu-item a {
+    text-decoration: none;
+    color: white;
+}
+.knavmenu-item a:hover {
+    text-decoration: none;
+    color: white;
+}
+.knavmenu-item a:link {
+    text-decoration: none;
+    color: white;
+}
+.knavmenu-item a:visited {
+    text-decoration: none;
+    color: white;
 }

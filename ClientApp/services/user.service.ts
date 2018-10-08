@@ -12,12 +12,18 @@ class UserServiceSingleton {
     public currentUser = ko.observable<User>(null);
     public currentTeam = ko.observable<Team>(null);
     public boardService = ko.observable<BoardService>(null);
+    private history : History = null;
 
     private constructor(){
-
+        if (localStorage.getItem('currentUser')!= null){
+            let tempUser = new User();
+            tempUser.id = Number(localStorage.getItem('currentUser'));
+            this.currentUser(tempUser);
+            this.setCurrenUserById(tempUser.id);
+        }
     }
 
-    public setCurrenUserById(userId: number) : Promise<User> {
+    public setCurrenUserById = (userId: number) : Promise<User> =>{
         return fetch ('api/User/Get', {
             method: "POST",
             body: JSON.stringify({userId:userId}),
@@ -26,8 +32,15 @@ class UserServiceSingleton {
             }})
             .then(this.setUser);
     };
+    
+    public getUserName = (user : User) : string => {        
+        let name = ((user.firstName||'') + ' ' + (user.lastName||'')).trim();
+        if (name == '')
+            return user.username;
+        return name;
+    };
 
-    public getUserTeam() : Promise<Team> {
+    public getUserTeam = () : Promise<Team> =>{
         if (this.currentUser()==null){
             return new Promise<Team>((resolve, reject) => {
                 reject(new Error("currentUser is not defined."));
@@ -57,7 +70,7 @@ class UserServiceSingleton {
          });
     };
 
-    public getTeams() : Promise<Array<Team>> {
+    public getTeams =() : Promise<Array<Team>> =>{
         return fetch ('api/User/GetUserTeams', {
             method: "POST",
             headers: {
@@ -67,7 +80,7 @@ class UserServiceSingleton {
          });
     };
 
-    public create(user: User) : Promise<User> {
+    public create = (user: User) : Promise<User> =>{
         return fetch ('api/User/Create', {
             method: "POST",
             body: JSON.stringify(user),
@@ -78,7 +91,7 @@ class UserServiceSingleton {
             });        
     };
 
-    public update(user: User|null) : Promise<User> {
+    public update = (user: User|null) : Promise<User> =>{
         return fetch ('api/User/Update', {
             method: "POST",
             body: JSON.stringify(user),
@@ -91,7 +104,7 @@ class UserServiceSingleton {
             });
     };
 
-    public login(username: string|null, password: string|null): Promise<User> {
+    public login = (username: string|null, password: string|null): Promise<User> =>{
         return fetch ('api/User/Authenticate', {
             method: "POST",
             body: JSON.stringify({ Username: username, Password: password }),
@@ -114,25 +127,25 @@ class UserServiceSingleton {
         return user;
     };
 
-    public logout() {
+    public logout = () => {
          // remove user from local storage to log user out
          localStorage.removeItem('currentUser');
          this.boardService().disconnectFromBoard();
          this.boardService(null);
          this.currentUser(null);
          this.currentTeam(null);
+         if (this.history!=null)
+            this.history.push('/login');
     };
 
     public canActivate = (history: History, callingRoute : Route) : boolean => {
-        if (localStorage.getItem('currentUser')!= null){
-            if (this.currentUser()== null) {
-                this.setCurrenUserById(Number(localStorage.getItem('currentUser')));
-                return true;
-            }
+        this.history = history;
+        if (this.currentUser()!= null) {
+            return true;
         }
-         // not logged in so redirect to login page with the return url
-         history.push('/login/' + callingRoute.url as History.Path);
-         return false;
+        // not logged in so redirect to login page with the return url
+        history.push('/login/' + callingRoute.url as History.Path);
+        return false;
     };
 
     public static get Instance(){

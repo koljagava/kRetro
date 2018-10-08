@@ -1,4 +1,4 @@
-//import 'bootstrap';
+import 'bootstrap';
 import * as ko from 'knockout';
 import { createBrowserHistory } from 'history';
 import './webpack-component-loader';

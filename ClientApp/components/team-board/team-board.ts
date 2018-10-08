@@ -12,15 +12,27 @@ export class TeamBoardViewModel {
     public boardName : KnockoutObservable<string> = ko.observable<string>('');
     public userService = UserService;
     public boardStatus = BoardStatus;
+    public othersCards : KnockoutObservableArray<CardBase> = ko.observableArray([]);
+    private isPublishCardsSubscribed = false;
 
     constructor() {
-    };
+        this.userService.boardService.subscribe((boardService : BoardService) =>{
+            if (boardService == null){
+                this.isPublishCardsSubscribed = false;
+            }else if (this.isPublishCardsSubscribed == false){
+                this.isPublishCardsSubscribed = true;
+                boardService.doPublishCards.subscribe(()=>{
+                    this.othersCards(this.getOthersCards());
+                });
+            }
+        })
+    };  
 
     public personalCards = ko.computed(() : Array<CardBase> =>{
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
             if (this.userService.boardService().board().status == this.boardStatus.WhatWorksOpened)
                 return this.userService.boardService().board().whatWorks.filter((card)=> card.user.id == this.userService.currentUser().id && card.visible == true);
-            else if (this.userService.boardService().board().status == this.boardStatus.WhatDontOpened)
+            else if (this.userService.boardService().board().status == this.boardStatus.WhatDesntOpened)
                 return this.userService.boardService().board().whatDont.filter((card)=> card.user.id == this.userService.currentUser().id && card.visible == true);
             else return [];
         }else{
@@ -30,7 +42,7 @@ export class TeamBoardViewModel {
 
     public othersCards1 = ko.computed(() : Array<CardBase> =>{
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
-            return this.othersCards.filter((card, index) => (index % 5) == 0);
+            return this.othersCards().filter((card, index) => (index % 5) == 0);
         }else{
             return [];
         }
@@ -38,7 +50,7 @@ export class TeamBoardViewModel {
 
     public othersCards2 = ko.computed(() : Array<CardBase> =>{
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
-            return this.othersCards.filter((card, index) => (index % 5) == 1);
+            return this.othersCards().filter((card, index) => (index % 5) == 1);
         }else{
             return [];
         }
@@ -46,7 +58,7 @@ export class TeamBoardViewModel {
 
     public othersCards3 = ko.computed(() : Array<CardBase> =>{
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
-            return this.othersCards.filter((card, index) => (index % 5) == 2);
+            return this.othersCards().filter((card, index) => (index % 5) == 2);
         }else{
             return [];
         }
@@ -54,7 +66,7 @@ export class TeamBoardViewModel {
 
     public othersCards4 = ko.computed(() : Array<CardBase> =>{
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
-            return this.othersCards.filter((card, index) => (index % 5) == 3);
+            return this.othersCards().filter((card, index) => (index % 5) == 3);
         }else{
             return [];
         }
@@ -62,17 +74,17 @@ export class TeamBoardViewModel {
 
     public othersCards5 = ko.computed(() : Array<CardBase> =>{
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
-            return this.othersCards.filter((card, index) => (index % 5) == 4);
+            return this.othersCards().filter((card, index) => (index % 5) == 4);
         }else{
             return [];
         }
         });
                             
-    public get othersCards () : Array<CardBase> {
+    public getOthersCards () : Array<CardBase> {
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
             if (this.userService.boardService().board().status == this.boardStatus.WhatWorksOpened)
                 return this.userService.boardService().board().whatWorks.filter((card)=> card.user.id != this.userService.currentUser().id && card.visible == true);
-            else if (this.userService.boardService().board().status == this.boardStatus.WhatDontOpened)
+            else if (this.userService.boardService().board().status == this.boardStatus.WhatDesntOpened)
                 return this.userService.boardService().board().whatDont.filter((card)=> card.user.id != this.userService.currentUser().id && card.visible == true);
             else return [];
         }else{
@@ -84,13 +96,6 @@ export class TeamBoardViewModel {
         this.userService.boardService().startNewBoard(this.boardName());
     };
 
-    public getUserName = (user : User) : string => {        
-        let name = ((user.firstName||'') + ' ' + (user.lastName||'')).trim();
-        if (name == '')
-            return user.username;
-        return name;
-    };
-
     public btnStatusDescr = () : string => {
         if (this.userService.boardService()!=null && this.userService.boardService().board() != null){
             switch (this.userService.boardService().board().status){
@@ -98,9 +103,9 @@ export class TeamBoardViewModel {
                 case this.boardStatus.WhatWorksOpened:
                 return "Start What works";
                 case this.boardStatus.WhatWorksClosed:
-                case this.boardStatus.WhatDontOpened:
+                case this.boardStatus.WhatDesntOpened:
                 return "Start What does not work";
-                case this.boardStatus.WhatDontClosed:
+                case this.boardStatus.WhatDesntClosed:
                 case this.boardStatus.ActionsOpened:
                 return "Start Actions";
             }
@@ -112,26 +117,14 @@ export class TeamBoardViewModel {
         switch (this.userService.boardService().board().status){
             case this.boardStatus.New:
             case this.boardStatus.WhatWorksClosed:
-            case this.boardStatus.WhatDontClosed:
+            case this.boardStatus.WhatDesntClosed:
             return false;
         }
         return true;
     };
 
     public btnStatusChng = () =>{
-        let newStatus : BoardStatus = this.userService.boardService().board().status;
-        switch (newStatus){
-            case this.boardStatus.New:
-                newStatus = this.boardStatus.WhatWorksOpened;
-                break;
-            case this.boardStatus.WhatWorksClosed:
-                newStatus = this.boardStatus.WhatDontOpened;
-                break;
-            case this.boardStatus.WhatDontClosed:
-                newStatus = this.boardStatus.ActionsOpened;
-                break;
-        }
-        this.userService.boardService().changeBoardStatus(newStatus);
+        this.userService.boardService().changeBoardStatus();
     }
 
     public checkEnter = (tvm : TeamBoardViewModel, kEvt : KeyboardEvent) : boolean => {

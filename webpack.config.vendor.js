@@ -3,7 +3,7 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = (env) => {
-    const isDevBuild = !(env && env.prod);
+    const isDevBuild = true;//!(env && env.prod);
     const extractCSS = new ExtractTextPlugin('vendor.css');
     return [{
         stats: { modules: false },
@@ -47,7 +47,7 @@ module.exports = (env) => {
                 name: '[name]_[hash]'
             })
         ].concat(isDevBuild ? [] : [
-            new webpack.optimize.UglifyJsPlugin()
-        ])
+             new webpack.optimize.UglifyJsPlugin()
+         ])
     }];
 };
