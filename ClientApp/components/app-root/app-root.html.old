@@ -1,8 +1,0 @@
-<div class='container-fluid'>
-    <div class='row' >
-        <div class='col-sm-12'>
-            <nav-menu params='router: router'></nav-menu>
-        </div>
-    </div>
-    <div style="height: 100%; margin-top:50px;" data-bind='component: { name: route().page, params: route }'></div>
-</div>

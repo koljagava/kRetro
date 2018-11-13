@@ -1,0 +1,15 @@
+span[disabled] {
+     pointer-events: none; 
+}
+.card-header {
+    padding-left: 2px;
+    padding-top: 0px;
+    padding-right: 2px;
+    padding-bottom: 0px;
+}
+.card-icon-container{
+    padding-top: 2px;
+}
+a.card-icon { 
+    cursor: pointer; 
+}

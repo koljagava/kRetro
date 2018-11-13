@@ -1,8 +1,9 @@
 ﻿import * as ko from 'knockout';
 import {Team} from '../models/persistency/team';
-import {Board, BoardStatus} from '../models/persistency/board';
+import {Board, BoardStatus, WhatDoesntUserVoteStatus, WhatWorksUserVoteStatus} from '../models/persistency/board';
 import * as signalR from "@aspnet/signalr";
 import { User } from '../models/persistency/user';
+import { BadVoteType } from '../models/persistency/cardBad';
 //import * as komap from 'knockout-mapping';
 
 export interface IBoardServiceMessage {
@@ -59,8 +60,25 @@ export class BoardService {
         });
     }
 
-    public sendCardMessage(message : string) : void{
-        this.boardHub.invoke("SendCardMessage", message).catch((reason:any)=>{
+    public addCardMessage(message : string) : void{
+        this.boardHub.invoke("AddCardMessage", message).catch((reason:any)=>{
+            throw new Error(reason);
+        });
+    }
+
+    public updateCardGoodVote(cardId: number) : void{
+        this.boardHub.invoke("UpdateCardGoodVote", cardId).catch((reason:any)=>{
+            throw new Error(reason);
+        });
+    }
+    
+    public updateCardBadVote(cardId: number, type: BadVoteType) : void{
+        this.boardHub.invoke("UpdateCardBadVote", cardId, type).catch((reason:any)=>{
+            throw new Error(reason);
+        });
+    }    
+    public updateCardMessage(id : number, message : string) : void{
+        this.boardHub.invoke("UpdateCardMessage", id, message).catch((reason:any)=>{
             throw new Error(reason);
         });
     }
@@ -75,6 +93,14 @@ export class BoardService {
         });
     }
 
+    public getWhatDoesntUserVoteStatus(userId : number) : WhatDoesntUserVoteStatus{
+        return this.board().whatDoesntUserVoteStatues.find((vote: WhatDoesntUserVoteStatus)=> vote.id == userId);
+    }
+
+    public getWhatWorksUserVoteStatus(userId : number) : WhatWorksUserVoteStatus{
+        return this.board().whatWorksUserVoteStatues.find((vote: WhatWorksUserVoteStatus)=> vote.id == userId);
+    }
+
     private connectedUserUpdate = (users : Array<User>) : void => {
         if(users!= null)
             this.connectedUsers(users);
@@ -84,6 +110,7 @@ export class BoardService {
         if(board!= null)
             this.board(board);
             //this.board(komap.fromJS(board, {}, this.board()));
+        var x = this.board();
     }
 
     private messageSent = (msg : string) : void => {
@@ -97,7 +124,7 @@ export class BoardService {
     }
 
     private serviceMessagesHandler = () =>{
-        let now = new Date().getTime();
+        const now = new Date().getTime();
         this.serviceMessages.remove((msg) => (now - msg.time.getTime())/1000 >= 60);
         if (this.serviceMessages.length == 0){
             clearInterval(this.serviceMessagesIntervalId);
@@ -107,5 +134,5 @@ export class BoardService {
 
     private publishCards = () => {
         this.doPublishCards.notifySubscribers();
-    }
+    }    
 }

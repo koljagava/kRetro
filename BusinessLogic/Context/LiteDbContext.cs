@@ -24,8 +24,8 @@ namespace kRetro.BusinessLogic.Context
             var boardConfig = new BoardConfig{
                 WhatWorksMinutes = 3,
                 WhatWorksVotesPerUser = 3,
-                WhatDontMinutes = 3,
-                WhatDontVotesPerUser = 3,
+                WhatDoesntMinutes = 3,
+                WhatDoesntVotesPerUser = 3,
                 ShowCardUser = false
             };
 
@@ -56,6 +56,8 @@ namespace kRetro.BusinessLogic.Context
                 {
                     Username = "kolja",
                     Password = "kolja",
+                    FirstName = "Nicola",
+                    LastName = "Gavazzeni",
                     Teams = new List<Team>{teams[2]}
                 });
                 Users.Insert(new User
@@ -92,7 +94,7 @@ namespace kRetro.BusinessLogic.Context
             BsonMapper.Global.Entity<Board>()
             .DbRef(b => b.WhatWorks, cardgood_collection_name);
             BsonMapper.Global.Entity<Board>()
-            .DbRef(b => b.WhatDont, cardbad_collection_name);
+            .DbRef(b => b.WhatDoesnt, cardbad_collection_name);
             BsonMapper.Global.Entity<Board>()
             .DbRef(b => b.Actions, action_collection_name);
             BsonMapper.Global.Entity<Board>()

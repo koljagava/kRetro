@@ -34,9 +34,9 @@ class AppRootViewModel {
         // to be split into separate files that are then loaded on demand.
         // For docs, see https://github.com/webpack/bundle-loader
         ko.components.register('nav-menu', navMenu);
-        ko.components.register('login', require('bundle-loader?lazy!../login/login'));
-        ko.components.register('register', require('bundle-loader?lazy!../register/register'));
-        ko.components.register('board', require('bundle-loader?lazy!../team-board/team-board'));
+        ko.components.register('login', require('bundle-loader?lazy!../../pages/login/login'));
+        ko.components.register('register', require('bundle-loader?lazy!../../pages/register/register'));
+        ko.components.register('board', require('bundle-loader?lazy!../../pages/team-board/team-board'));
     }
 
     // To support hot module replacement, this method unregisters the router and KO components.

@@ -74,13 +74,26 @@ namespace kRetro.BusinessLogic
             await GetBoardManager(connectionId).StartNewBoardAsync(connectionId, boardName);
         }
 
-        internal async Task SendCardMessageAsync (string connectionId, string message)
+        internal async Task AddCardMessageAsync (string connectionId, string message)
         {
-            await GetBoardManager(connectionId).SendCardMessageAsync(connectionId, message);
+            await GetBoardManager(connectionId).AddCardMessageAsync(connectionId, message);
+        }
+
+        internal async Task UpdateCardMessageAsync (string connectionId, int id, string message)
+        {
+            await GetBoardManager(connectionId).UpdateCardMessageAsync(connectionId, id, message);
         }
 
         internal async Task ChangeBoardStatusAsync(string connectionId, bool isInternalCall){
             await GetBoardManager(connectionId).ChangeBoardStatusAsync(isInternalCall, connectionId);
+        }
+
+        internal async Task UpdateCardGoodVoteAsync(string connectionId, int cardId){
+            await GetBoardManager(connectionId).UpdateCardGoodVoteAsync(connectionId, cardId);
+        }
+
+        internal async Task UpdateCardBadVoteAsync(string connectionId, int cardId, BadVoteType type){
+            await GetBoardManager(connectionId).UpdateCardBadVoteAsync(connectionId, cardId, type);
         }
     }
 
@@ -104,24 +117,37 @@ namespace kRetro.BusinessLogic
             BoardTimer.AutoReset=true;
             BoardTimer.Elapsed += OnOneMinutePassed;
         }
+
+        private void StartBoardTimer(){
+            ElapsedMinutes = 0;
+            BoardTimer.Start();
+        }
+        private void StopBoardTimer(){
+            BoardTimer.Stop();
+        }
+
         private void OnOneMinutePassed(Object source, ElapsedEventArgs e)
         {
             ElapsedMinutes++;
             int minutes=0;
+            // refresh team for configuration changes
+            using(var context = new LiteDbContext()){
+                Team = context.Teams.Include(t=> t.BoardConfiguration).FindById(Team.Id);
+            }
             switch(Board.Status)
             {
                 case BoardStatus.WhatWorksOpened:
                     minutes = Team.BoardConfiguration.WhatWorksMinutes;
                     break;
-                case BoardStatus.WhatDesntOpened:
-                    minutes = Team.BoardConfiguration.WhatDontMinutes;
+                case BoardStatus.WhatDoesntOpened:
+                    minutes = Team.BoardConfiguration.WhatDoesntMinutes;
                     break;
                 default:
                     return;
             }
             if (Math.Round((decimal)((minutes+1) / 2)) == ElapsedMinutes || minutes == ElapsedMinutes){
                 if (minutes == ElapsedMinutes){
-                    BoardTimer.Stop();
+                    StopBoardTimer();
                     ChangeBoardStatusAsync(true, null).Wait();
                     Group.SendAsync("SendMessage", "Cards insert disabled.");
                     return;
@@ -201,7 +227,7 @@ namespace kRetro.BusinessLogic
             }            
         }
 
-        internal async Task SendCardMessageAsync(string connectionId, string message)
+        internal async Task AddCardMessageAsync(string connectionId, string message)
         {
             await _boardLock.WaitAsync();
             try
@@ -211,26 +237,137 @@ namespace kRetro.BusinessLogic
                 
                 switch (Board.Status){
                     case BoardStatus.WhatWorksOpened:
-                        Board.WhatWorks.Add(new CardGood{
+                        var gCard = new CardGood{
                             Message = message,
                             CreationDateTime = DateTime.Now,
                             User = GetConnectedUser(connectionId),
                             Visible = true
-                        });
+                        };
+                        using(var context = new LiteDbContext()){
+                            context.CardsGood.Insert(gCard);
+                            Board.WhatWorks.Add(gCard);
+                            context.Boards.Update(Board);
+                        }
                     break;
-                    case BoardStatus.WhatDesntOpened:
-                        Board.WhatDont.Add(new CardBad{
+                    case BoardStatus.WhatDoesntOpened:
+                        var bCard = new CardBad{
                             Message = message,
                             CreationDateTime = DateTime.Now,
                             User = GetConnectedUser(connectionId),
                             Visible = true
-                        });
+                        };
+                        using(var context = new LiteDbContext()){
+                            context.CardsBad.Insert(bCard);
+                            Board.WhatDoesnt.Add(bCard);
+                            context.Boards.Update(Board);
+                        }
                     break;
                     default:
                     throw new Exception("It is not time to add cards.");
                 }
-                using(var context = new LiteDbContext()){
-                    context.Boards.Update(Board);
+                await BroadcastBoardUpdate();
+            }
+            finally
+            {
+                _boardLock.Release();
+            }            
+        }
+
+        internal async Task UpdateCardGoodVoteAsync(string connectionId, int cardId)
+        {
+            await _boardLock.WaitAsync();
+            try
+            {
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+                
+                var card = Board.WhatWorks.Find(cg=> cg.Id == cardId);
+
+                if (card == null)
+                    throw new Exception($"Card Good does not exists [Card Id : {cardId}].");
+                var user = GetConnectedUser(connectionId);
+
+                var uv = card.Votes.Find(vote=> vote.Id == user.Id);
+
+                if (uv == null)
+                    card.Votes.Add(user);
+                else
+                    card.Votes.Remove(uv);
+
+                await BroadcastBoardUpdate();
+            }
+            finally
+            {
+                _boardLock.Release();
+            }            
+        }
+
+
+        internal async Task UpdateCardBadVoteAsync(string connectionId, int cardId, BadVoteType type)
+        {
+            await _boardLock.WaitAsync();
+            try
+            {
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+                
+                var card = Board.WhatDoesnt.Find(cg=> cg.Id == cardId);
+
+                if (card == null)
+                    throw new Exception($"Card Good does not exists [Card Id : {cardId}].");
+                var user = GetConnectedUser(connectionId);
+
+                var uv = card.Votes.Find(vote=> vote.User.Id == user.Id && vote.Type == type);
+
+                if (uv == null)
+                    card.Votes.Add(new BadVote{ Type = type, User = user});
+                else
+                    card.Votes.Remove(uv);
+
+                await BroadcastBoardUpdate();
+            }
+            finally
+            {
+                _boardLock.Release();
+            }            
+        }
+
+        internal async Task UpdateCardMessageAsync(string connectionId, int id, string message)
+        {
+            await _boardLock.WaitAsync();
+            try
+            {
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+                switch (Board.Status){
+                    case BoardStatus.WhatWorksOpened:
+                        var gCard = Board.WhatWorks.Find(c=> c.Id == id);
+                        using(var context = new LiteDbContext()){                            
+                            if (string.IsNullOrEmpty(message)){
+                                Board.WhatWorks.Remove(gCard);
+                                context.CardsGood.Delete(c=> c.Id == id);    
+                            }else{
+                                gCard.Message = message;
+                                context.CardsGood.Update(gCard);
+                            }
+                            context.Boards.Update(Board);
+                        }
+                    break;
+                    case BoardStatus.WhatDoesntOpened:
+                        var bCard = Board.WhatDoesnt.Find(c=> c.Id == id);
+                        using(var context = new LiteDbContext()){                            
+                            if (string.IsNullOrEmpty(message)){
+                                Board.WhatDoesnt.Remove(bCard);
+                                context.CardsBad.Delete(c=> c.Id == id);    
+                            }else{
+                                bCard.Message = message;
+                                context.CardsBad.Update(bCard);
+                            }
+                            context.Boards.Update(Board);
+                        }
+                    break;
+                    default:
+                    throw new Exception("It is not time to update cards.");
                 }
                 await BroadcastBoardUpdate();
             }
@@ -255,7 +392,7 @@ namespace kRetro.BusinessLogic
                 {
                     case BoardStatus.New :
                         nextStatus = BoardStatus.WhatWorksOpened;
-                        BoardTimer.Start();
+                        StartBoardTimer();
                         await Group.SendAsync("SendMessage", "Time started for \"What Works\", please write your cards.");
                         break;
                     case BoardStatus.WhatWorksOpened:
@@ -265,11 +402,11 @@ namespace kRetro.BusinessLogic
                         await Group.SendAsync("SendMessage", " please do your votes.");
                         break;
                     case BoardStatus.WhatWorksClosed:
-                        nextStatus = BoardStatus.WhatDesntOpened;
-                        BoardTimer.Start();
+                        nextStatus = BoardStatus.WhatDoesntOpened;
+                        StartBoardTimer();
                         await Group.SendAsync("SendMessage", "Time started for \"What Doesn't\", please write your cards.");
                         break;
-                    case BoardStatus.WhatDesntOpened:
+                    case BoardStatus.WhatDoesntOpened:
                         if (!isInternalCall)
                             throw new Exception("THis status Changes can not be done by user.");
                         nextStatus = BoardStatus.WhatDesntClosed;
@@ -289,7 +426,10 @@ namespace kRetro.BusinessLogic
                     Board.Status = nextStatus;
 
                     using(var context = new LiteDbContext()){
-                        context.Boards.Update(Board);
+                        context.Boards.Update(Board);                        
+                    }
+                    if (actualStatus == BoardStatus.Closed){
+                        Board = null;
                     }
                     await BroadcastBoardUpdate();
                 }

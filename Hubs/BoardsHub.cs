@@ -53,11 +53,24 @@ namespace kRetro.Hubs
         public Task StarNewBoard(string boardName){            
             return this._boardsManager.StarNewBoardAsync(Context.ConnectionId, boardName);
         }
-        public Task SendCardMessage(string message){            
-            return this._boardsManager.SendCardMessageAsync(Context.ConnectionId, message);
+        
+        public Task AddCardMessage(string message){            
+            return this._boardsManager.AddCardMessageAsync(Context.ConnectionId, message);
         }
+        public Task UpdateCardMessage(int id, string message){
+            return this._boardsManager.UpdateCardMessageAsync(Context.ConnectionId, id, message);
+        }
+
         public Task ChangeBoardStatus(){            
             return this._boardsManager.ChangeBoardStatusAsync(Context.ConnectionId, false);
+        }
+
+        public Task UpdateCardGoodVote(int cardId){            
+            return this._boardsManager.UpdateCardGoodVoteAsync(Context.ConnectionId, cardId);
+        }
+
+        public Task UpdateCardBadVote(int cardId, BadVoteType type){            
+            return this._boardsManager.UpdateCardBadVoteAsync(Context.ConnectionId, cardId, type);
         }
 
         public Team GetTeam(int? id)

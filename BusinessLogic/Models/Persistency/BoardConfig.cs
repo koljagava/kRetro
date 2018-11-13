@@ -7,8 +7,8 @@ namespace kRetro.BusinessLogic.Models.Persistency
         public int Id {get;set;}
         public int WhatWorksMinutes {get;set;}
         public int WhatWorksVotesPerUser {get;set;}
-        public int WhatDontMinutes {get;set;}
-        public int WhatDontVotesPerUser {get;set;}
+        public int WhatDoesntMinutes {get;set;}
+        public int WhatDoesntVotesPerUser {get;set;}
         public bool ShowCardUser {get;set;}
 
         public BoardConfig Clone(){

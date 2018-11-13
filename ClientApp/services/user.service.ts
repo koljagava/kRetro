@@ -32,6 +32,19 @@ class UserServiceSingleton {
             }})
             .then(this.setUser);
     };
+
+    public getUserById = (userId: number) : Promise<User> =>{
+        return fetch ('api/User/Get', {
+            method: "POST",
+            body: JSON.stringify({userId:userId}),
+            headers: {
+              "Content-Type": "application/json"
+            }})
+            .then(userResponse => {
+                const user:Promise<User> = userResponse.json();
+                return user;
+            });
+    };
     
     public getUserName = (user : User) : string => {        
         let name = ((user.firstName||'') + ' ' + (user.lastName||'')).trim();
@@ -80,7 +93,7 @@ class UserServiceSingleton {
          });
     };
 
-    public create = (user: User) : Promise<User> =>{
+    public create = (user: User|null) : Promise<User> =>{
         return fetch ('api/User/Create', {
             method: "POST",
             body: JSON.stringify(user),
@@ -97,7 +110,7 @@ class UserServiceSingleton {
             body: JSON.stringify(user),
             headers: {
               "Content-Type": "application/json"
-            }}).then(result => {                
+            }}).then(result => {
                 let user = result.json() as Promise<User>;
                 user.then((user:User)=> {this.currentUser(user);});
                 return user;

@@ -2,8 +2,16 @@ using System;
 
 namespace kRetro.BusinessLogic.Models.Persistency
 {
+    public enum CardType{
+        Good,
+        Bad
+    }
     public class CardBase
     {
+        public CardType Type {get; private set;}
+        public CardBase(CardType type){
+            Type = type;
+        }
         public int Id {get;set;}
         public string Message {get;set;}
         public User User {get;set;}

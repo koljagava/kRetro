@@ -4,9 +4,9 @@ namespace kRetro.BusinessLogic.Models.Persistency
 {
     public enum BadVoteType
     {
-        Facile,
-        Sentito,
-        Inaspettato
+        Easy = 0,
+        Significant = 1,
+        Unexpected = 2
     }
 
     public class BadVote
@@ -17,6 +17,10 @@ namespace kRetro.BusinessLogic.Models.Persistency
 
     public class CardBad : CardBase
     {
+        public CardBad() : base(CardType.Bad)
+        {
+        }
+
         public List<BadVote> Votes {get;set;} = new List<BadVote>();
     }
 }

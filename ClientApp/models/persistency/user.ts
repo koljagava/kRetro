@@ -1,7 +1,7 @@
 ﻿import { Team } from "./team";
 
 export class User {
-    public id: number|null = null;
+    public id: number|null = 0;
     public username: string|null = null;
     public password: string|null = null;
     public firstName: string|null = null;

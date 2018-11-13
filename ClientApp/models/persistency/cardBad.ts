@@ -1,10 +1,10 @@
 import {User} from './user';
-import {CardBase} from './cardBase';
+import {CardBase, CardType} from './cardBase';
 
 export enum BadVoteType {
-    Facile = 0,
-    Sentito = 1,
-    Inaspettato = 2
+    Easy = 0,
+    Significant = 1,
+    Unexpected = 2
 }
 
 export class BadVote {
@@ -13,5 +13,8 @@ export class BadVote {
 }
 
 export class CardBad extends CardBase {
+    constructor(){
+        super(CardType.Bad);
+    }
     public votes: Array<BadVote> | undefined;
 }
