@@ -95,6 +95,12 @@ namespace kRetro.BusinessLogic
         internal async Task UpdateCardBadVoteAsync(string connectionId, int cardId, BadVoteType type){
             await GetBoardManager(connectionId).UpdateCardBadVoteAsync(connectionId, cardId, type);
         }
+        internal async Task UpdateBoardConfigAsync(string connectionId, BoardConfig boardConfig){
+            foreach (var board in Boards.Values.Where(b=> b.Team.BoardConfiguration.Id == boardConfig.Id))
+            {
+                await board.UpdateBoardConfigAsync(boardConfig);
+            }
+        }
     }
 
 
@@ -130,10 +136,6 @@ namespace kRetro.BusinessLogic
         {
             ElapsedMinutes++;
             int minutes=0;
-            // refresh team for configuration changes
-            using(var context = new LiteDbContext()){
-                Team = context.Teams.Include(t=> t.BoardConfiguration).FindById(Team.Id);
-            }
             switch(Board.Status)
             {
                 case BoardStatus.WhatWorksOpened:
@@ -145,15 +147,19 @@ namespace kRetro.BusinessLogic
                 default:
                     return;
             }
-            if (Math.Round((decimal)((minutes+1) / 2)) == ElapsedMinutes || minutes == ElapsedMinutes){
-                if (minutes == ElapsedMinutes){
-                    StopBoardTimer();
-                    ChangeBoardStatusAsync(true, null).Wait();
-                    Group.SendAsync("SendMessage", "Cards insert disabled.");
-                    return;
-                }
+            if (minutes == ElapsedMinutes){
+                StopBoardTimer();
+                ChangeBoardStatusAsync(true, null).Wait();
+                Group.SendAsync("SendMessage", "Cards insert disabled.");
+                Group.SendAsync("PublishCards").Wait();
+                return;
+            }
+
+            if (Math.Round((decimal)((minutes+1) / 2)) == ElapsedMinutes){
+                Group.SendAsync("SendMessage", "Let show other cards.");
                 Group.SendAsync("PublishCards").Wait();
             }
+
             if ((minutes - ElapsedMinutes)<=1){
                 Group.SendAsync("SendMessage", "One minute left.").Wait();
             }
@@ -302,7 +308,6 @@ namespace kRetro.BusinessLogic
             }            
         }
 
-
         internal async Task UpdateCardBadVoteAsync(string connectionId, int cardId, BadVoteType type)
         {
             await _boardLock.WaitAsync();
@@ -440,9 +445,33 @@ namespace kRetro.BusinessLogic
             }            
         }        
 
+
+        internal async Task UpdateBoardConfigAsync(BoardConfig boardConfig)
+        {
+            await _boardLock.WaitAsync();
+            try
+            {
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+
+                Team.BoardConfiguration = boardConfig;
+
+                await Group.SendAsync("BoardConfigUpdate", boardConfig);
+            }
+            finally
+            {
+                _boardLock.Release();
+            }            
+        }
+ 
         private async Task BroadcastBoardUpdate()
         {
             await Group.SendAsync("BoardUpdate", Board);
+            
+            if (Board.Status == BoardStatus.WhatWorksOpened || 
+                Board.Status == BoardStatus.WhatDoesntOpened){
+                 await Group.SendAsync("PublishCards");                   
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using kRetro.BusinessLogic.Models.Persistency;
 using LiteDB;
 
@@ -19,8 +20,16 @@ namespace kRetro.BusinessLogic.Context
         public readonly LiteDatabase Db;        
         public LiteDbContext()
         {
-
+            var dbIsNew = File.Exists(Configuration.LightDbName);
             Db = new LiteDatabase(Configuration.LightDbName);
+            SetUpDbStructure();
+            if (dbIsNew){
+                SetUpNewDb();
+            }
+        }
+
+        private void SetUpNewDb(){
+
             var boardConfig = new BoardConfig{
                 WhatWorksMinutes = 3,
                 WhatWorksVotesPerUser = 3,
@@ -67,7 +76,6 @@ namespace kRetro.BusinessLogic.Context
                     Teams = new List<Team>{teams[2]}
                 });
             }
-            SetUpDbStructure();
         }
 
         private void SetUpDbStructure()
@@ -75,9 +83,8 @@ namespace kRetro.BusinessLogic.Context
             //**Indexes**
             Teams.EnsureIndex(t=> t.Name);
             Users.EnsureIndex(u=> u.Username);
-            Users.EnsureIndex(u=> u.Username);
-            Users.EnsureIndex(u=> u.Username);
             Boards.EnsureIndex(b=> b.Date);
+            Actions.EnsureIndex(a=> a.Card, false);
 
             //**Relations**
             //Users
@@ -111,6 +118,10 @@ namespace kRetro.BusinessLogic.Context
             .DbRef(cg => cg.User, user_collection_name);
             BsonMapper.Global.Entity<CardGood>()
             .DbRef(cg => cg.Votes, user_collection_name);
+
+            //Actions
+            BsonMapper.Global.Entity<Models.Persistency.Action>()
+            .DbRef(a => a.Card, user_collection_name);
         }
 
         #region Collections

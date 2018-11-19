@@ -22,7 +22,8 @@ export class WhatWorksUserVoteStatus{
 
 export class WhatDoesntUserVoteStatus{
     public id : number;
-    public count: Array<number>;
+    public count: number;
+    public voteTypeCount: Array<number>;
 }
 
 export class Board {
@@ -36,4 +37,5 @@ export class Board {
     public manager: User | undefined;
     public whatWorksUserVoteStatues : Array<WhatWorksUserVoteStatus>;
     public whatDoesntUserVoteStatues : Array<WhatDoesntUserVoteStatus>;
+    public partecipatingUsers : Array<User>;
 };

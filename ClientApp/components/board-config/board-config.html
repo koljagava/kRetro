@@ -9,28 +9,28 @@
                 <label>What works</label>
                 <div class="input-group-prepend">
                 <span class="input-group-text">minutes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
-                <input data-bind="value:userService.currentTeam().boardConfiguration.whatWorksMinutes"  type="number" class="form-control">
+                <input data-bind="value:userService.boardService().team().boardConfiguration.whatWorksMinutes"  type="number" class="form-control">
                 </div>              
                 <div class="input-group-prepend">
                 <span class="input-group-text">votes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
-                <input data-bind="value:userService.currentTeam().boardConfiguration.whatWorksVotesPerUser" type="number" class="form-control">
+                <input data-bind="value:userService.boardService().team().boardConfiguration.whatWorksVotesPerUser" type="number" class="form-control">
                 </div>              
             </div>
             <div class="form-label-group">
                 <label>What desn't work</label>
                 <div class="input-group-prepend">
                 <span class="input-group-text">minutes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
-                <input data-bind="value:userService.currentTeam().boardConfiguration.whatDoesntMinutes"  type="number" class="form-control">
+                <input data-bind="value:userService.boardService().team().boardConfiguration.whatDoesntMinutes"  type="number" class="form-control">
                 </div>              
                 <div class="input-group-prepend">
                 <span class="input-group-text">votes&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
-                <input data-bind="value:userService.currentTeam().boardConfiguration.whatDoesntVotesPerUser" type="number" class="form-control">
+                <input data-bind="value:userService.boardService().team().boardConfiguration.whatDoesntVotesPerUser" type="number" class="form-control">
                 </div>              
             </div>         
             <div class="form-label-group">
                 <div class="input-group-prepend">
                     <span class="input-group-text">Show Card User :</span>
-                    <input data-bind="value:userService.currentTeam().boardConfiguration.showCardUser"  type="checkbox" class="form-control">
+                    <input data-bind="value:userService.boardService().team().boardConfiguration.showCardUser"  type="checkbox" class="form-control">
                 </div>              
             </div>         
             <div class="modal-footer bg-secondary">

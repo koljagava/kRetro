@@ -38,7 +38,7 @@
       </div>
     </div>
     <!-- /ko--> 
-    <board-config></board-config>
+    <retro-board-config></retro-board-config>
     <div class="modal-dialog bg-secondary" role="document">
       <div class="modal-content bg-secondary">
         <div class="modal-header">
@@ -47,7 +47,12 @@
         <div class="modal-body">
           <!-- ko if : userService.boardService() != null -->
           <ul data-bind="foreach:userService.boardService().connectedUsers">
-            <li data-bind="text: $parent.userService.getUserName($data)"></li>
+            <li>
+              <span data-bind="text: $parent.userService.getUserName($data)"></span>
+            <!-- ko if : $parent.userService.boardService() != null && $parent.userService.boardService().getMissingVotesPerUser($data.id) != null-->
+              <span class="badge badge-light" data-bind="text:$parent.userService.boardService().getMissingVotesPerUser($data.id)"></span>
+            <!--/ko -->
+            </li>
           </ul>
           <!-- /ko-->
         </div>
@@ -69,40 +74,7 @@
     </div>
   </div>
   <div class="col-md-10 kcontent">
-  <!-- ko if : userService.boardService() != null && 
-               userService.boardService().board() != null && 
-               (userService.boardService().board().status == boardStatus.WhatWorksOpened || 
-                userService.boardService().board().status == boardStatus.WhatWorksClosed || 
-                userService.boardService().board().status == boardStatus.WhatDoesntOpened ||
-                userService.boardService().board().status == boardStatus.WhatDoesntClosed) -->
-    <div class="kheader" data-bind="text:boardStatus[userService.boardService().board().status]"></div>
-    <div class="container-fluid body-content" style="top:30px;">
-      <div class="row">
-        <div class="col-md-2">
-          <div class="card" data-bind="foreach:personalCards">
-              <retro-card params="card:$data"></retro-card>
-            </div>
-        </div>
-        <div class="col-md-2"  data-bind="foreach:othersCards1">
-            <retro-card params="card:$data"></retro-card>
-        </div>
-        <div class="col-md-2"  data-bind="foreach:othersCards2">
-            <retro-card params="card:$data"></retro-card>
-        </div>
-        <div class="col-md-2"  data-bind="foreach:othersCards3">
-            <retro-card params="card:$data"></retro-card>
-        </div>
-        <div class="col-md-2"  data-bind="foreach:othersCards4">
-            <retro-card params="card:$data"></retro-card>
-        </div>
-        <div class="col-md-2"  data-bind="foreach:othersCards5">
-            <retro-card params="card:$data"></retro-card>
-        </div>
-      </div>
-    </div>
-    <div class="kfooter fixed container-fluid-inline">
-      <textarea style="height: 90%; width:100%" data-bind="event:{keydown:checkEnter}, disabled: (userService.boardService().board().status != boardStatus.WhatDoesntOpened && userService.boardService().board().status != boardStatus.WhatWorksOpened)"></textarea>
-    </div>
-  <!--/ko-->
+    <retro-cards></retro-cards>
+    <retro-actions></retro-actions>
   </div>
 </div>

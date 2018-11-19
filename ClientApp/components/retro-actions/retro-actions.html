@@ -1,0 +1,58 @@
+<!-- ko if : userService.boardService() != null && 
+userService.boardService().board() != null && 
+userService.boardService().board().status == boardStatus.ActionsOpened -->
+<div class="kheader" data-bind="text:boardStatus[userService.boardService().board().status]">    
+</div>
+<ul class="nav nav-tabs" id="actionsTabs" role="tablist" style="margin-top: 30px;">
+    <li class="nav-item">
+        <a class="nav-link active" id="whatworks-tab" href="#whatworks" data-toggle="tab" role="tab" aria-controls="whatworks" aria-selected="true">What Works</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" id="whatdoesnt-dab" href="#whatdoesnt" data-toggle="tab" role="tab" aria-controls="whatdoesnt" aria-selected="false">What Doesnt</a>
+    </li>
+</ul>
+<div class="tab-content" id="actionsTabsContent">
+    <div class="tab-pane fade show active container-fluid" id="whatworks" role="tabpanel" aria-labelledby="whatworks-tab">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                <th scope="col">Card</th>
+                <th scope="col">Votes</th>
+                <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach:cardsGood">
+                <tr>
+                    <td data-bind="text:message"></td>
+                    <td data-bind="text:votes.length"></td>
+                    <td>actions</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="tab-pane fade container-fluid" id="whatdoesnt" role="tabpanel" aria-labelledby="whatdoesnt-tab">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Card</th>
+                    <th scope="col" title="easy"><span data-bind="html:feather.icons['check-square'].toSvg({width:24, height:24, color:'darkblue'})"></span></th>
+                    <th scope="col" title="significant"><span data-bind="html:feather.icons['star'].toSvg({width:24, height:24, color:'darkblue'})"></span></th>
+                    <th scope="col" title="unexpected"><span data-bind="html:feather.icons['alert-circle'].toSvg({width:24, height:24, color:'darkblue'})"></span></th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Actions</th>
+                </tr>        
+            </thead>
+            <tbody data-bind="foreach:cardsBad">
+                <tr>
+                        <td data-bind="text:message"></td>
+                        <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Easy).length"></td>
+                        <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Significant).length"></td>
+                        <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Unexpected).length"></td>
+                        <td data-bind="text:votes.length"></td>
+                        <td>actions</td>    
+                </tr>
+            </tbody>
+        </table>
+    </div>    
+</div>
+<!-- /ko -->

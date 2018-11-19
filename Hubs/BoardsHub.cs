@@ -81,5 +81,12 @@ namespace kRetro.Hubs
                 return dbContext.Teams.Include(t => t.BoardConfiguration).FindById(id.Value);
             }
         }
+
+        public Task UpdateBoardConfig(BoardConfig boardConfig){
+            using(var dbContext = new LiteDbContext()){
+                dbContext.BoardConfigs.Update(boardConfig);
+            }
+            return this._boardsManager.UpdateBoardConfigAsync(Context.ConnectionId, boardConfig);
+        }
     }
 }

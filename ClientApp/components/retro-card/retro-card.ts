@@ -97,7 +97,7 @@ export class RetroCardViewModel {
         const voteStatus = this.userService.boardService().getWhatWorksUserVoteStatus(this.userService.currentUser().id);
         if (this.hasUserVotedForGood() || 
             voteStatus == null ||
-            voteStatus.count < this.userService.currentTeam().boardConfiguration.whatWorksVotesPerUser){
+            voteStatus.count < this.userService.boardService().team().boardConfiguration.whatWorksVotesPerUser){
             this.userService.boardService().updateCardGoodVote(this.card.id);
         }
         return true;
@@ -127,7 +127,7 @@ export class RetroCardViewModel {
         const voteStatus = this.userService.boardService().getWhatDoesntUserVoteStatus(this.userService.currentUser().id);
         if (this.hasUserVotedForBad(BadVoteType.Easy) ||
             voteStatus == null ||
-            voteStatus.count[BadVoteType.Easy] < this.userService.currentTeam().boardConfiguration.whatDoesntVotesPerUser) {
+            voteStatus.voteTypeCount[BadVoteType.Easy] < this.userService.boardService().team().boardConfiguration.whatDoesntVotesPerUser) {
             this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Easy);
         }
         return true;
@@ -149,7 +149,7 @@ export class RetroCardViewModel {
         const voteStatus = this.userService.boardService().getWhatDoesntUserVoteStatus(this.userService.currentUser().id);
         if (this.hasUserVotedForBad(BadVoteType.Significant) ||
             voteStatus == null || 
-            voteStatus.count[BadVoteType.Significant] < this.userService.currentTeam().boardConfiguration.whatDoesntVotesPerUser) {
+            voteStatus.voteTypeCount[BadVoteType.Significant] < this.userService.boardService().team().boardConfiguration.whatDoesntVotesPerUser) {
             this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Significant);
         }
         return true;
@@ -171,7 +171,7 @@ export class RetroCardViewModel {
         const voteStatus = this.userService.boardService().getWhatDoesntUserVoteStatus(this.userService.currentUser().id);
         if (this.hasUserVotedForBad(BadVoteType.Unexpected) ||
             voteStatus == null ||
-            voteStatus.count[BadVoteType.Unexpected] < this.userService.currentTeam().boardConfiguration.whatDoesntVotesPerUser){
+            voteStatus.voteTypeCount[BadVoteType.Unexpected] < this.userService.boardService().team().boardConfiguration.whatDoesntVotesPerUser){
             this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Unexpected);
         }
         return true;

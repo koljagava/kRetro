@@ -10,7 +10,7 @@ class UserServiceSingleton {
     private static _instance : UserServiceSingleton = null;
     //TODO: pensare se definire il papping degli oggetti completo (knockout-mapping) - verifica le necessità della register
     public currentUser = ko.observable<User>(null);
-    public currentTeam = ko.observable<Team>(null);
+    private _currentTeam = ko.observable<Team>(null);
     public boardService = ko.observable<BoardService>(null);
     private history : History = null;
 
@@ -59,9 +59,9 @@ class UserServiceSingleton {
                 reject(new Error("currentUser is not defined."));
             });
         }
-        if (this.currentTeam() != null){
+        if (this._currentTeam() != null){
             return new Promise<Team>((resolve, reject) => {
-                    resolve(this.currentTeam());
+                    resolve(this._currentTeam());
             });
         }
         return fetch ('api/User/GetUserTeams', {
@@ -72,7 +72,7 @@ class UserServiceSingleton {
             }}).then(result => {
                 let teams = result.json() as Promise<Array<Team>>;
                 return teams.then((teams:Array<Team>)=> {
-                    this.currentTeam(teams[0]);
+                    this._currentTeam(teams[0]);
                     return new Promise<Team>((resolve, reject) => {
                         if (teams.length == 0)
                             reject(new Error("user has no team associated"))
@@ -133,7 +133,7 @@ class UserServiceSingleton {
             if (user.id != null)
                 localStorage.setItem('currentUser', user.id.toString());
                 this.getUserTeam().then((team:Team)=>{
-                    this.boardService(new BoardService(this.currentUser, this.currentTeam));
+                    this.boardService(new BoardService(this.currentUser, this._currentTeam));
                     this.boardService().connectToBoard();
                 });
         });
@@ -146,7 +146,7 @@ class UserServiceSingleton {
          this.boardService().disconnectFromBoard();
          this.boardService(null);
          this.currentUser(null);
-         this.currentTeam(null);
+         this._currentTeam(null);
          if (this.history!=null)
             this.history.push('/login');
     };

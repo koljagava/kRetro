@@ -4,6 +4,7 @@ import {Board, BoardStatus, WhatDoesntUserVoteStatus, WhatWorksUserVoteStatus} f
 import * as signalR from "@aspnet/signalr";
 import { User } from '../models/persistency/user';
 import { BadVoteType } from '../models/persistency/cardBad';
+import { BoardConfig } from '../models/persistency/boardConfig';
 //import * as komap from 'knockout-mapping';
 
 export interface IBoardServiceMessage {
@@ -21,22 +22,23 @@ class BoardServiceMessage implements IBoardServiceMessage{
 export class BoardService {
     private boardHub : signalR.HubConnection|null = null;
     public connectedUsers = ko.observableArray<User>(new Array<User>());
-    //public board : KnockoutObservable<KnockoutObservableType<Board>> = ko.observable<KnockoutObservableType<Board>>(null);
     public board : KnockoutObservable<Board> = ko.observable<Board>(null);
     public doPublishCards : KnockoutSubscribable<void> = new ko.subscribable();
     public serviceMessages : KnockoutObservableArray<IBoardServiceMessage> = ko.observableArray([]);
     public maxServiceMessagesAllowed : number = 4;
     public minutesServiceMessagesInQueue : number = 1;
-    private serviceMessagesIntervalId : number = null;  
+    private serviceMessagesIntervalId : number = null;
+    uv: any;
 
-    constructor(public user: KnockoutObservable<User> , public team : KnockoutObservable<Team>) {         
+    constructor(public user: KnockoutObservable<User> , public team : KnockoutObservable<Team>) {
     }
 
-    public connectToBoard(){
+    public connectToBoard = () =>{
         this.disconnectFromBoard();
         this.boardHub = new signalR.HubConnectionBuilder().withUrl('http://localhost:5000/boards?userId=' + this.user().id + '&teamId=' + this.team().id).build();
         this.boardHub.on('ConnectedUsersUpdate',this.connectedUserUpdate);
         this.boardHub.on('BoardUpdate',this.boardUpdate);
+        this.boardHub.on('BoardConfigUpdate',this.boardConfigUpdate);
         this.boardHub.on('SendMessage',this.messageSent);
         this.boardHub.on('PublishCards',this.publishCards);
         this.boardHub.start().catch((reason:any)=>{
@@ -44,7 +46,7 @@ export class BoardService {
          });
     }
 
-    public disconnectFromBoard(){
+    public disconnectFromBoard = () =>{
         if (this.boardHub== null)
             return;
         this.boardHub.off('ConnectedUsersUpdate',this.connectedUserUpdate)
@@ -54,31 +56,38 @@ export class BoardService {
         this.boardHub.stop();
     }
 
-    public startNewBoard(boardName : string) : void {
+    public startNewBoard = (boardName : string) : void =>{
         this.boardHub.invoke("StarNewBoard", boardName).catch((reason:any)=>{
             throw new Error(reason);
         });
     }
 
-    public addCardMessage(message : string) : void{
+    public addCardMessage = (message : string) : void =>{
         this.boardHub.invoke("AddCardMessage", message).catch((reason:any)=>{
             throw new Error(reason);
         });
     }
 
-    public updateCardGoodVote(cardId: number) : void{
+    public updateCardGoodVote = (cardId: number) : void =>{
         this.boardHub.invoke("UpdateCardGoodVote", cardId).catch((reason:any)=>{
             throw new Error(reason);
         });
     }
     
-    public updateCardBadVote(cardId: number, type: BadVoteType) : void{
+    public updateCardBadVote = (cardId: number, type: BadVoteType) : void =>{
         this.boardHub.invoke("UpdateCardBadVote", cardId, type).catch((reason:any)=>{
             throw new Error(reason);
         });
-    }    
-    public updateCardMessage(id : number, message : string) : void{
+    }
+
+    public updateCardMessage = (id : number, message : string) : void =>{
         this.boardHub.invoke("UpdateCardMessage", id, message).catch((reason:any)=>{
+            throw new Error(reason);
+        });
+    }
+
+    public updateBoardConfig = (boardConfig : BoardConfig) : void => {
+        this.boardHub.invoke("UpdateBoardConfig", boardConfig).catch((reason:any)=>{
             throw new Error(reason);
         });
     }
@@ -93,12 +102,48 @@ export class BoardService {
         });
     }
 
-    public getWhatDoesntUserVoteStatus(userId : number) : WhatDoesntUserVoteStatus{
-        return this.board().whatDoesntUserVoteStatues.find((vote: WhatDoesntUserVoteStatus)=> vote.id == userId);
+    public getWhatDoesntUserVoteStatus = (userId : number) : WhatDoesntUserVoteStatus =>{
+        const result = this.board().whatDoesntUserVoteStatues.find((vote: WhatDoesntUserVoteStatus)=> vote.id == userId);
+        if (result != null){
+            return result;
+        }
+        return {id: userId, count: 0, voteTypeCount : [0, 0, 0]};
     }
 
-    public getWhatWorksUserVoteStatus(userId : number) : WhatWorksUserVoteStatus{
-        return this.board().whatWorksUserVoteStatues.find((vote: WhatWorksUserVoteStatus)=> vote.id == userId);
+    public getWhatWorksUserVoteStatus = (userId : number) : WhatWorksUserVoteStatus =>{
+        const result = this.board().whatWorksUserVoteStatues.find((vote: WhatWorksUserVoteStatus)=> vote.id == userId);
+        if (result != null){
+            return result;
+        }
+        return {id: userId, count: 0}
+    }
+
+    public getMissingVotesPerUser = (userId : number) : number|null => {
+        if (this.board()== null){
+            return null;
+        }
+        if (this.board().status == BoardStatus.WhatWorksClosed){
+                return this.team().boardConfiguration.whatWorksVotesPerUser - this.getWhatWorksUserVoteStatus(userId).count;
+        } 
+        if (this.board().status == BoardStatus.WhatDoesntClosed){
+            let count = 0;
+            const votes = this.getWhatDoesntUserVoteStatus(userId);
+            count += this.team().boardConfiguration.whatDoesntVotesPerUser - votes.voteTypeCount[BadVoteType.Easy];
+            count += this.team().boardConfiguration.whatDoesntVotesPerUser - votes.voteTypeCount[BadVoteType.Significant];
+            count += this.team().boardConfiguration.whatDoesntVotesPerUser - votes.voteTypeCount[BadVoteType.Unexpected];
+            return count;
+        }
+        return null;
+    }
+
+    public getMissingVotes = () : number|null =>{
+        let count = 0;
+        this.connectedUsers().forEach(user => {
+            const userVote = this.getMissingVotesPerUser(user.id);
+            if (userVote!= null)
+                count += userVote;
+        });
+        return count;
     }
 
     private connectedUserUpdate = (users : Array<User>) : void => {
@@ -109,8 +154,11 @@ export class BoardService {
     private boardUpdate = (board : Board) : void => {
         if(board!= null)
             this.board(board);
-            //this.board(komap.fromJS(board, {}, this.board()));
-        var x = this.board();
+    }
+
+    private boardConfigUpdate = (boardConfig : BoardConfig) : void => {
+        this.team().boardConfiguration = boardConfig;
+        this.team.notifySubscribers();
     }
 
     private messageSent = (msg : string) : void => {
