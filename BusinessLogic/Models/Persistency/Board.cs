@@ -42,7 +42,7 @@ namespace kRetro.BusinessLogic.Models.Persistency
         public BoardStatus Status {get;set;} = BoardStatus.New;
         public List<CardGood> WhatWorks {get;set;} = new List<CardGood>();
         public List<CardBad> WhatDoesnt {get;set;} = new List<CardBad>();
-        public List<Action> Actions {get;set;} = new List<Action>();
+        public List<RetroAction> Actions {get;set;} = new List<RetroAction>();
         public User Manager {get;set;}
 
         [BsonIgnore]

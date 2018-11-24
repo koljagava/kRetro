@@ -88,5 +88,10 @@ namespace kRetro.Hubs
             }
             return this._boardsManager.UpdateBoardConfigAsync(Context.ConnectionId, boardConfig);
         }
+
+        public Task UpdateAction(RetroAction action){
+            return this._boardsManager.UpdateActionAsync(Context.ConnectionId, action);
+        }
+
     }
 }

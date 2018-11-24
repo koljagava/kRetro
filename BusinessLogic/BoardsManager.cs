@@ -85,7 +85,7 @@ namespace kRetro.BusinessLogic
         }
 
         internal async Task ChangeBoardStatusAsync(string connectionId, bool isInternalCall){
-            await GetBoardManager(connectionId).ChangeBoardStatusAsync(isInternalCall, connectionId);
+            await GetBoardManager(connectionId).ChangeBoardStatusAsync(isInternalCall);
         }
 
         internal async Task UpdateCardGoodVoteAsync(string connectionId, int cardId){
@@ -95,6 +95,12 @@ namespace kRetro.BusinessLogic
         internal async Task UpdateCardBadVoteAsync(string connectionId, int cardId, BadVoteType type){
             await GetBoardManager(connectionId).UpdateCardBadVoteAsync(connectionId, cardId, type);
         }
+
+        internal async Task UpdateActionAsync(string connectionId, RetroAction action)
+        {
+            await GetBoardManager(connectionId).UpdateActionAsync(connectionId, action);
+        }
+
         internal async Task UpdateBoardConfigAsync(string connectionId, BoardConfig boardConfig){
             foreach (var board in Boards.Values.Where(b=> b.Team.BoardConfiguration.Id == boardConfig.Id))
             {
@@ -117,11 +123,32 @@ namespace kRetro.BusinessLogic
             this.Group = group;
             using(var context = new LiteDbContext()){
                 Team = context.Teams.Include(t=> t.BoardConfiguration).FindById(teamId); 
+                var boards = context.Boards
+                                .Include(b=> b.Actions)
+                                .Include(b=> b.WhatWorks)
+                                .Include(b=> b.WhatDoesnt)
+                                .Include(b=> b.Manager)
+                                .Find(b => b.Status != BoardStatus.Closed).ToList();
+                if (boards.Count != 0){
+                    Board = boards.Last();
+                    RestatBoard();
+                }
             }
             BoardTimer = new System.Timers.Timer(60000);
             BoardTimer.Enabled=false;
             BoardTimer.AutoReset=true;
             BoardTimer.Elapsed += OnOneMinutePassed;
+        }
+
+        private async void RestatBoard()
+        {
+            if (Board.Status == BoardStatus.New){
+                 await BroadcastBoardUpdate();
+                 return;
+            }
+
+            Board.Status = (BoardStatus)((int)Board.Status)-1;
+            await ChangeBoardStatusAsync(true);
         }
 
         private void StartBoardTimer(){
@@ -149,7 +176,7 @@ namespace kRetro.BusinessLogic
             }
             if (minutes == ElapsedMinutes){
                 StopBoardTimer();
-                ChangeBoardStatusAsync(true, null).Wait();
+                ChangeBoardStatusAsync(true).Wait();
                 Group.SendAsync("SendMessage", "Cards insert disabled.");
                 Group.SendAsync("PublishCards").Wait();
                 return;
@@ -250,7 +277,7 @@ namespace kRetro.BusinessLogic
                             Visible = true
                         };
                         using(var context = new LiteDbContext()){
-                            context.CardsGood.Insert(gCard);
+                            context.Cards.Insert(gCard);
                             Board.WhatWorks.Add(gCard);
                             context.Boards.Update(Board);
                         }
@@ -263,7 +290,7 @@ namespace kRetro.BusinessLogic
                             Visible = true
                         };
                         using(var context = new LiteDbContext()){
-                            context.CardsBad.Insert(bCard);
+                            context.Cards.Insert(bCard);
                             Board.WhatDoesnt.Add(bCard);
                             context.Boards.Update(Board);
                         }
@@ -300,6 +327,10 @@ namespace kRetro.BusinessLogic
                 else
                     card.Votes.Remove(uv);
 
+                using (var context = new LiteDbContext()){
+                    context.Cards.Update(card);
+                }
+
                 await BroadcastBoardUpdate();
             }
             finally
@@ -329,6 +360,10 @@ namespace kRetro.BusinessLogic
                 else
                     card.Votes.Remove(uv);
 
+                using (var context = new LiteDbContext()){
+                    context.Cards.Update(card);
+                }
+
                 await BroadcastBoardUpdate();
             }
             finally
@@ -350,10 +385,10 @@ namespace kRetro.BusinessLogic
                         using(var context = new LiteDbContext()){                            
                             if (string.IsNullOrEmpty(message)){
                                 Board.WhatWorks.Remove(gCard);
-                                context.CardsGood.Delete(c=> c.Id == id);    
+                                context.Cards.Delete(c=> c.Id == id);    
                             }else{
                                 gCard.Message = message;
-                                context.CardsGood.Update(gCard);
+                                context.Cards.Update(gCard);
                             }
                             context.Boards.Update(Board);
                         }
@@ -363,10 +398,10 @@ namespace kRetro.BusinessLogic
                         using(var context = new LiteDbContext()){                            
                             if (string.IsNullOrEmpty(message)){
                                 Board.WhatDoesnt.Remove(bCard);
-                                context.CardsBad.Delete(c=> c.Id == id);    
+                                context.Cards.Delete(c=> c.Id == id);    
                             }else{
                                 bCard.Message = message;
-                                context.CardsBad.Update(bCard);
+                                context.Cards.Update(bCard);
                             }
                             context.Boards.Update(Board);
                         }
@@ -382,7 +417,7 @@ namespace kRetro.BusinessLogic
             }            
         }
 
-        internal async Task ChangeBoardStatusAsync(bool isInternalCall, string connectionId){
+        internal async Task ChangeBoardStatusAsync(bool isInternalCall){
             await _boardLock.WaitAsync();
             try
             {
@@ -433,10 +468,15 @@ namespace kRetro.BusinessLogic
                     using(var context = new LiteDbContext()){
                         context.Boards.Update(Board);                        
                     }
-                    if (actualStatus == BoardStatus.Closed){
+                    if (Board.Status == BoardStatus.Closed){
                         Board = null;
                     }
                     await BroadcastBoardUpdate();
+                    if (Board != null && 
+                        (Board.Status == BoardStatus.WhatWorksOpened || 
+                        Board.Status == BoardStatus.WhatDoesntOpened)){
+                        await Group.SendAsync("PublishCards");                   
+                    }
                 }
             }
             finally
@@ -444,7 +484,6 @@ namespace kRetro.BusinessLogic
                 _boardLock.Release();
             }            
         }        
-
 
         internal async Task UpdateBoardConfigAsync(BoardConfig boardConfig)
         {
@@ -467,11 +506,47 @@ namespace kRetro.BusinessLogic
         private async Task BroadcastBoardUpdate()
         {
             await Group.SendAsync("BoardUpdate", Board);
-            
-            if (Board.Status == BoardStatus.WhatWorksOpened || 
-                Board.Status == BoardStatus.WhatDoesntOpened){
-                 await Group.SendAsync("PublishCards");                   
+        }
+
+        internal async Task UpdateActionAsync(string connectionId, RetroAction action)
+        {
+            await _boardLock.WaitAsync();
+            try
+            {
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+
+                if (action==null)
+                    throw new Exception("Action can not be null.");
+
+                if (action.Card==null)
+                    throw new Exception($"Action's linked card can not be null [action : {action.Description??"[empty]"}].");
+
+                var extAct = Board.Actions.Find(act=> act.Id == action.Id);
+
+                using(var context = new LiteDbContext()){
+
+                    if (extAct == null){
+                        context.Actions.Insert(action);
+                        Board.Actions.Add(action);
+                        context.Boards.Update(Board);
+                    }
+                    else{
+                        extAct.Description = action.Description;
+                        extAct.WhoChecks = action.WhoChecks;
+                        extAct.InChargeTo = action.InChargeTo;
+                        extAct.Status = action.Status;
+                        extAct.Card = action.Card;
+                        context.Actions.Update(extAct);
+                    }
+                }
+
+                await Group.SendAsync("BoardUpdate", Board);
             }
+            finally
+            {
+                _boardLock.Release();
+            }            
         }
     }
 }

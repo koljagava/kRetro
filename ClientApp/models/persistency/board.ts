@@ -1,7 +1,7 @@
 import {User} from './user';
 import {CardGood} from "./cardGood";
 import {CardBad} from './cardBad';
-import {Action} from "./action";
+import {RetroAction} from "./retroAction";
 
 export enum BoardStatus {
     New = 0,
@@ -33,7 +33,7 @@ export class Board {
     public status: BoardStatus | undefined;
     public whatWorks: Array<CardGood> | undefined;
     public whatDoesnt: Array<CardBad> | undefined;
-    public actions: Array<Action> | undefined;
+    public actions: Array<RetroAction> | undefined;
     public manager: User | undefined;
     public whatWorksUserVoteStatues : Array<WhatWorksUserVoteStatus>;
     public whatDoesntUserVoteStatues : Array<WhatDoesntUserVoteStatus>;

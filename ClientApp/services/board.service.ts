@@ -5,6 +5,7 @@ import * as signalR from "@aspnet/signalr";
 import { User } from '../models/persistency/user';
 import { BadVoteType } from '../models/persistency/cardBad';
 import { BoardConfig } from '../models/persistency/boardConfig';
+import { RetroAction } from '../models/persistency/retroAction';
 //import * as komap from 'knockout-mapping';
 
 export interface IBoardServiceMessage {
@@ -28,7 +29,6 @@ export class BoardService {
     public maxServiceMessagesAllowed : number = 4;
     public minutesServiceMessagesInQueue : number = 1;
     private serviceMessagesIntervalId : number = null;
-    uv: any;
 
     constructor(public user: KnockoutObservable<User> , public team : KnockoutObservable<Team>) {
     }
@@ -88,6 +88,12 @@ export class BoardService {
 
     public updateBoardConfig = (boardConfig : BoardConfig) : void => {
         this.boardHub.invoke("UpdateBoardConfig", boardConfig).catch((reason:any)=>{
+            throw new Error(reason);
+        });
+    }
+
+    public updateAction = (action : RetroAction) : void => {
+        this.boardHub.invoke("UpdateAction", action).catch((reason:any)=>{
             throw new Error(reason);
         });
     }
@@ -152,8 +158,7 @@ export class BoardService {
     }
 
     private boardUpdate = (board : Board) : void => {
-        if(board!= null)
-            this.board(board);
+        this.board(board);
     }
 
     private boardConfigUpdate = (boardConfig : BoardConfig) : void => {

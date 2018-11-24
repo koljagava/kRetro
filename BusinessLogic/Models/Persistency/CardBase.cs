@@ -4,11 +4,16 @@ namespace kRetro.BusinessLogic.Models.Persistency
 {
     public enum CardType{
         Good,
-        Bad
+        Bad,
+        Unknown
     }
     public class CardBase
     {
         public CardType Type {get; private set;}
+
+        public CardBase(){
+            Type = CardType.Unknown;
+        }        
         public CardBase(CardType type){
             Type = type;
         }

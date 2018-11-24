@@ -8,7 +8,6 @@ import 'isomorphic-fetch';
 
 class UserServiceSingleton {
     private static _instance : UserServiceSingleton = null;
-    //TODO: pensare se definire il papping degli oggetti completo (knockout-mapping) - verifica le necessità della register
     public currentUser = ko.observable<User>(null);
     private _currentTeam = ko.observable<Team>(null);
     public boardService = ko.observable<BoardService>(null);

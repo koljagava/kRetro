@@ -85,6 +85,7 @@ export class RetroCardViewModel {
         }
         return true;
     }
+
     private setGoodVoteClr(isMouseIn: boolean = false){
         if (this.hasUserVotedForGood()){
             this.clrVote('darkblue');
@@ -92,6 +93,7 @@ export class RetroCardViewModel {
             this.clrVote(isMouseIn?'darkblue':'LightSteelBlue');
         }
     }
+
     //#region Vote  
     public doVote = (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
         const voteStatus = this.userService.boardService().getWhatWorksUserVoteStatus(this.userService.currentUser().id);

@@ -5,12 +5,14 @@ import * as Boostrap from 'bootstrap';
 import { CardGood } from '../../models/persistency/cardGood';
 import { CardBad, BadVoteType } from '../../models/persistency/cardBad';
 import * as feather from 'feather-icons';
+import { RetroActionManagerViewModel } from '../retro-action-manager/retro-action-manager';
 
 export class RetroActionsViewModel {
     public userService = UserService;
     public boardStatus = BoardStatus;
     public badVoteType = BadVoteType;
     private _bootstrap = Boostrap;
+    private _retroActionManager = RetroActionManagerViewModel;
     public feather =  feather;
 
     constructor() {

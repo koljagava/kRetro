@@ -11,8 +11,7 @@ namespace kRetro.BusinessLogic.Context
         private string user_collection_name = "Users";
         private string team_collection_name = "Teams";
         private string boardconfig_collection_name = "BoardConfigs";
-        private string cardgood_collection_name = "CardsGood";
-        private string cardbad_collection_name = "CardsBad";
+        private string card_collection_name = "Cards";
         private string action_collection_name = "Actions";
         private string board_collection_name = "Boards";
         
@@ -80,11 +79,16 @@ namespace kRetro.BusinessLogic.Context
 
         private void SetUpDbStructure()
         {
+            //** Primary Key **/
+            // da capire
+
             //**Indexes**
-            Teams.EnsureIndex(t=> t.Name);
+            Teams.EnsureIndex(t=> t.Name);            
             Users.EnsureIndex(u=> u.Username);
             Boards.EnsureIndex(b=> b.Date);
             Actions.EnsureIndex(a=> a.Card, false);
+            BoardConfigs.EnsureIndex(bc=> bc.Id);
+            Cards.EnsureIndex(c=> c.Id);
 
             //**Relations**
             //Users
@@ -99,29 +103,28 @@ namespace kRetro.BusinessLogic.Context
             
             //Boards
             BsonMapper.Global.Entity<Board>()
-            .DbRef(b => b.WhatWorks, cardgood_collection_name);
+            .DbRef(b => b.WhatWorks, card_collection_name);
             BsonMapper.Global.Entity<Board>()
-            .DbRef(b => b.WhatDoesnt, cardbad_collection_name);
+            .DbRef(b => b.WhatDoesnt, card_collection_name);
             BsonMapper.Global.Entity<Board>()
             .DbRef(b => b.Actions, action_collection_name);
             BsonMapper.Global.Entity<Board>()
             .DbRef(b => b.Manager, user_collection_name);
 
-            //CardsBad
-            BsonMapper.Global.Entity<CardBad>()
+            //CardsBase
+            BsonMapper.Global.Entity<CardBase>()
             .DbRef(cb => cb.User, user_collection_name);
+            
             BsonMapper.Global.Entity<BadVote>()
             .DbRef(bv => bv.User, user_collection_name);
 
             //CardsGood
             BsonMapper.Global.Entity<CardGood>()
-            .DbRef(cg => cg.User, user_collection_name);
-            BsonMapper.Global.Entity<CardGood>()
             .DbRef(cg => cg.Votes, user_collection_name);
 
             //Actions
-            BsonMapper.Global.Entity<Models.Persistency.Action>()
-            .DbRef(a => a.Card, user_collection_name);
+            BsonMapper.Global.Entity<RetroAction>()
+            .DbRef(a => a.Card, card_collection_name);
         }
 
         #region Collections
@@ -161,39 +164,27 @@ namespace kRetro.BusinessLogic.Context
                 return _teams;
             }
         }
-        private LiteCollection<CardGood> _cardsGood;
-        public LiteCollection<CardGood> CardsGood
+        private LiteCollection<CardBase> _cards;
+        public LiteCollection<CardBase> Cards
         {
             get
             {
-                if (_cardsGood != null){
-                    return _cardsGood;                    
+                if (_cards != null){
+                    return _cards;                    
                 }
-                _cardsGood = Db.GetCollection<CardGood>(cardgood_collection_name);
-                return _cardsGood;
+                _cards = Db.GetCollection<CardBase>(card_collection_name);
+                return _cards;
             }
         }
-        private LiteCollection<CardBad> _cardsBad;
-        public LiteCollection<CardBad> CardsBad
-        {
-            get
-            {
-                if (_cardsBad != null){
-                    return _cardsBad;
-                }
-                _cardsBad = Db.GetCollection<CardBad>(cardbad_collection_name);
-                return _cardsBad;
-            }
-        }
-        private LiteCollection<Models.Persistency.Action> _actions;
-        public LiteCollection<Models.Persistency.Action> Actions
+        private LiteCollection<RetroAction> _actions;
+        public LiteCollection<RetroAction> Actions
         {
             get
             {
                 if (_actions != null){
                     return _actions;
                 }
-                _actions = Db.GetCollection<Models.Persistency.Action>(action_collection_name);
+                _actions = Db.GetCollection<RetroAction>(action_collection_name);
                 return _actions;
             }
         }
