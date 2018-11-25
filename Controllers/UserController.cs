@@ -22,6 +22,11 @@ namespace kRetro.Controllers
             public int? UserId { get; set; }
         }
 
+        public class TeamIdParam
+        {
+            public int? TeamId { get; set; }
+        }
+
         [HttpPost("[action]")]
         public JsonResult Authenticate([FromBody] LoginData loginData)
         {
@@ -62,6 +67,20 @@ namespace kRetro.Controllers
                 var uTeamIds = context.Users.FindById(param.UserId.Value).Teams.Select(t => t.Id).ToList();
                 return new JsonResult(context.Teams.Include(t => t.BoardConfiguration).Find(t=> uTeamIds.Exists(utId=> utId == t.Id)).ToList());
             }
+        }
+
+        [HttpPost("[action]")]
+        public JsonResult GetBoardsHistory([FromBody] TeamIdParam param)
+        {
+            var context = new LiteDbContext();
+                var boards = context.Boards
+                                .Include(b=> b.Actions)
+                                .Include(b=> b.WhatWorks)
+                                .Include(b=> b.WhatDoesnt)
+                                .Include(b=> b.Manager)
+                                .Find(b => b.Status == BoardStatus.Closed).OrderByDescending(b=> b.Date).ToList();
+
+                return new JsonResult(boards);
         }
 
         [HttpPost("[action]")]

@@ -75,6 +75,11 @@
   </div>
   <div class="col-md-10 kcontent">
     <retro-cards></retro-cards>
-    <retro-actions></retro-actions>
+    <!-- ko if : userService.boardService() != null && 
+    userService.boardService().board() != null && 
+    (userService.boardService().board().status == boardStatus.ActionsOpened ||
+    userService.boardService().board().status == boardStatus.ActionsClosed)-->    
+    <retro-actions params="board:userService.boardService().board, title:boardStatus[userService.boardService().board().status]"></retro-actions>
+    <!-- /ko  -->
   </div>
 </div>

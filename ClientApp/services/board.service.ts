@@ -30,12 +30,12 @@ export class BoardService {
     public minutesServiceMessagesInQueue : number = 1;
     private serviceMessagesIntervalId : number = null;
 
-    constructor(public user: KnockoutObservable<User> , public team : KnockoutObservable<Team>) {
+    constructor(public user: KnockoutObservable<User> , private team : KnockoutObservable<Team>) {
     }
 
     public connectToBoard = () =>{
         this.disconnectFromBoard();
-        this.boardHub = new signalR.HubConnectionBuilder().withUrl('http://localhost:5000/boards?userId=' + this.user().id + '&teamId=' + this.team().id).build();
+        this.boardHub = new signalR.HubConnectionBuilder().withUrl(window.location.origin + '/boards?userId=' + this.user().id + '&teamId=' + this.team().id).build();
         this.boardHub.on('ConnectedUsersUpdate',this.connectedUserUpdate);
         this.boardHub.on('BoardUpdate',this.boardUpdate);
         this.boardHub.on('BoardConfigUpdate',this.boardConfigUpdate);

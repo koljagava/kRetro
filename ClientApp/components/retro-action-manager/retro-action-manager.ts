@@ -4,9 +4,10 @@ import * as Boostrap from 'bootstrap';
 import * as feather from 'feather-icons';
 import { CardBase } from '../../models/persistency/cardBase';
 import { RetroAction } from '../../models/persistency/retroAction';
-import { BoardStatus } from '../../models/persistency/board';
+import { BoardStatus, Board } from '../../models/persistency/board';
 
 interface IRetroActionManagerParams {
+    board: KnockoutObservable<Board>;
     card : CardBase
 }
 
@@ -14,23 +15,31 @@ export class RetroActionManagerViewModel {
     public userService = UserService;
     private _bootstrap = Boostrap;
     public feather =  feather;    
-    public card : KnockoutObservable<CardBase> = ko.observable<CardBase>(null);
+    public card : KnockoutObservable<CardBase>;
     public selectedFieldId : string = null;
     public boardStatus = BoardStatus;
+    public board: KnockoutObservable<Board>;
+    public actions: KnockoutComputed<RetroAction[]>;
+    public isDisabled: KnockoutComputed<boolean>;
 
     public constructor(params: IRetroActionManagerParams) {
+        if (params == null){
+            throw new Error("params can not be null");
+        }
         if (params.card == null){
             throw new Error("card can not be null");
         }
-        this.card(params.card);
-    }
+        if (params.board == null){
+            throw new Error("board can not be null");
+        }
+        this.card = ko.observable<CardBase>(params.card);
+        this.board = params.board;
 
-    public actions = ko.computed(():Array<RetroAction> =>{
+        this.actions = ko.computed(():Array<RetroAction> =>{
+            let actions : Array<RetroAction> = [];
             if (this.card() != null &&
-                this.userService.boardService()!=null && 
-                this.userService.boardService().board()!=null){
-                const actions = this.userService.boardService().board().actions.filter((act)=> act.card.id ==this.card().id);
-                actions.push(new RetroAction(this.card()));
+                this.board()!=null){
+                actions = this.board().actions.filter((act)=> act.card.id ==this.card().id);
                 setTimeout(()=>{
                     if (this.selectedFieldId != null){
                         const ele = <HTMLInputElement>document.getElementById(this.selectedFieldId);
@@ -40,19 +49,22 @@ export class RetroActionManagerViewModel {
                         }
                     }
                 }, 0);
-                return actions;
             }
-            return [new RetroAction(this.card())];
-    }).extend({ notify: 'always' });
+            if (this.board()!= null &&
+                this.board().status == this.boardStatus.ActionsOpened){
+                actions.push(new RetroAction(this.card()));
+            }
+            return actions;
+        }).extend({ notify: 'always' });
 
-    public isDisabled = ko.computed((): boolean =>{
-        if (this.userService.boardService()!=null && 
-            this.userService.boardService().board()!=null &&
-            this.userService.boardService().board().status == this.boardStatus.ActionsOpened){
-            return this.userService.boardService().user().id != this.userService.boardService().board().manager.id;
-        }
-        return true;
-    });
+        this.isDisabled = ko.computed((): boolean =>{
+            if (this.board()!=null &&
+                this.board().status == this.boardStatus.ActionsOpened){
+                return this.userService.currentUser().id != this.board().manager.id;
+            }
+            return true;
+        });
+    }
 
     public setFocus = (action : RetroAction, kEvt : KeyboardEvent) =>{
         this.selectedFieldId = (<HTMLElement>kEvt.currentTarget).id;

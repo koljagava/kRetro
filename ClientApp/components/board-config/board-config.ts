@@ -5,7 +5,7 @@ export class BoardConfigViewModel {
     public userService = UserService;
 
     public saveBoardConfig = () =>{
-        this.userService.boardService().updateBoardConfig(this.userService.boardService().team().boardConfiguration);
+        this.userService.boardService().updateBoardConfig(this.userService.currentTeam().boardConfiguration);
     };
 }
 

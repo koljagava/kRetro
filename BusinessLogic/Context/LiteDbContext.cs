@@ -19,7 +19,7 @@ namespace kRetro.BusinessLogic.Context
         public readonly LiteDatabase Db;        
         public LiteDbContext()
         {
-            var dbIsNew = File.Exists(Configuration.LightDbName);
+            var dbIsNew = !File.Exists(Configuration.LightDbName);
             Db = new LiteDatabase(Configuration.LightDbName);
             SetUpDbStructure();
             if (dbIsNew){

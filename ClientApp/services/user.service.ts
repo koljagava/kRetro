@@ -5,13 +5,15 @@ import {BoardService} from './board.service';
 import { History } from 'history';
 import * as ko from 'knockout';
 import 'isomorphic-fetch';
+import { Board } from '../models/persistency/board';
 
 class UserServiceSingleton {
     private static _instance : UserServiceSingleton = null;
     public currentUser = ko.observable<User>(null);
-    private _currentTeam = ko.observable<Team>(null);
+    public currentTeam = ko.observable<Team>(null);
     public boardService = ko.observable<BoardService>(null);
     private history : History = null;
+    testResult: Response;
 
     private constructor(){
         if (localStorage.getItem('currentUser')!= null){
@@ -52,55 +54,70 @@ class UserServiceSingleton {
         return name;
     };
 
-    public getUserTeam = () : Promise<Team> =>{
+    public getBoardsHistory = async () : Promise<Array<Board>> => {
+        if (this.currentTeam() == null){
+            return new Promise<Array<Board>>((resolve, reject) => {
+                reject(new Error("currentTeam is not defined."));
+            });
+        }
+        this.testResult = await fetch('api/User/GetBoardsHistory', {
+            method: "POST",
+            body: JSON.stringify({ teamId: this.currentTeam().id }),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        return this.testResult.json() as Promise<Array<Board>>;
+    }
+
+    public getUserTeam = async () : Promise<Team> =>{
         if (this.currentUser()==null){
             return new Promise<Team>((resolve, reject) => {
                 reject(new Error("currentUser is not defined."));
             });
         }
-        if (this._currentTeam() != null){
+        if (this.currentTeam() != null){
             return new Promise<Team>((resolve, reject) => {
-                    resolve(this._currentTeam());
+                    resolve(this.currentTeam());
             });
         }
-        return fetch ('api/User/GetUserTeams', {
+        const result = await fetch('api/User/GetUserTeams', {
             method: "POST",
-            body: JSON.stringify({userId:this.currentUser().id}),
+            body: JSON.stringify({ userId: this.currentUser().id }),
             headers: {
-              "Content-Type": "application/json"
-            }}).then(result => {
-                let teams = result.json() as Promise<Array<Team>>;
-                return teams.then((teams:Array<Team>)=> {
-                    this._currentTeam(teams[0]);
-                    return new Promise<Team>((resolve, reject) => {
-                        if (teams.length == 0)
-                            reject(new Error("user has no team associated"))
-                        else
-                            resolve(teams[0]);
-                    });
-                });         
-         });
+                "Content-Type": "application/json"
+            }
+        });
+        let teams = (result.json() as Promise<Array<Team>>);
+        const teams_1 = await teams;
+        this.currentTeam(teams_1[0]);
+        return new Promise<Team>((resolve, reject) => {
+            if (teams_1.length == 0)
+                reject(new Error("user has no team associated"));
+            else
+                resolve(teams_1[0]);
+        });
     };
 
-    public getTeams =() : Promise<Array<Team>> =>{
-        return fetch ('api/User/GetUserTeams', {
+    public getTeams =async () : Promise<Array<Team>> =>{
+        const result = await fetch('api/User/GetUserTeams', {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
-            }}).then(result => {
-                return result.json() as Promise<Array<Team>>;
-         });
+                "Content-Type": "application/json"
+            }
+        });
+        return result.json() as Promise<Array<Team>>;
     };
 
-    public create = (user: User|null) : Promise<User> =>{
-        return fetch ('api/User/Create', {
+    public create = async (user: User|null) : Promise<User> =>{
+        const result = await fetch('api/User/Create', {
             method: "POST",
             body: JSON.stringify(user),
             headers: {
-              "Content-Type": "application/json"
-            }}).then(result => {
-                return result.json();
-            });        
+                "Content-Type": "application/json"
+            }
+        });
+        return result.json();        
     };
 
     public update = (user: User|null) : Promise<User> =>{
@@ -132,7 +149,7 @@ class UserServiceSingleton {
             if (user.id != null)
                 localStorage.setItem('currentUser', user.id.toString());
                 this.getUserTeam().then((team:Team)=>{
-                    this.boardService(new BoardService(this.currentUser, this._currentTeam));
+                    this.boardService(new BoardService(this.currentUser, this.currentTeam));
                     this.boardService().connectToBoard();
                 });
         });
@@ -145,7 +162,7 @@ class UserServiceSingleton {
          this.boardService().disconnectFromBoard();
          this.boardService(null);
          this.currentUser(null);
-         this._currentTeam(null);
+         this.currentTeam(null);
          if (this.history!=null)
             this.history.push('/login');
     };

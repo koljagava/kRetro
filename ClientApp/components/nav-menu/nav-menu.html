@@ -19,11 +19,12 @@
     <div class="knavmenu-item">
         <a data-bind="attr:{href: router.link('register')}"><span data-bind="html:feather.icons['user'].toSvg()"></span><span>Hello <!-- ko text: userService.getUserName(userService.currentUser())--><!--/ko--></span></a>
     </div>
-    <!-- /ko -->
     <div class="knavmenu-item">
         <a data-bind="attr:{href: router.link('')}"><span data-bind="html:feather.icons['clipboard'].toSvg()"></span><span>Board</span></a>
     </div>
-    <!-- ko if: userService.currentUser()!=null -->
+    <div class="knavmenu-item">
+        <a data-bind="attr:{href: router.link('history')}"><span data-bind="html:feather.icons['layers'].toSvg()"></span><span>Boards history</span></a>
+    </div>
     <div class="knavmenu-item" data-bind="click: userService.logout">
         <span data-bind="html:feather.icons['log-out'].toSvg()"></span><span>Logout</span>
     </div>

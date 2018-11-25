@@ -1,0 +1,15 @@
+<div class="container-fluid kcontent row">
+  <div class="col-md-2 kcontent bg-secondary text-light">    
+    <h3>&nbsp;&nbsp;&nbsp;Boards History</h3>
+    <ul data-bind="foreach:boards">
+      <li>
+        <span style="cursor: pointer;" data-bind="text:name + ' (' + date.substring(0,10) + ')', click:$parent.selectBoard" ></span>
+      </li>
+    </ul>
+  </div>
+  <div class="col-md-10 kcontent">
+    <!-- ko if : selectedBoard()!=null -->
+      <retro-actions params="board:selectedBoard, title:selectedBoard()==null?'':selectedBoard().name + ' (' + selectedBoard().date.substring(0,10) + ')'"></retro-actions>
+    <!-- /ko -->
+  </div>
+</div>

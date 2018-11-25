@@ -1,8 +1,4 @@
-<!-- ko if : userService.boardService() != null && 
-userService.boardService().board() != null && 
-(userService.boardService().board().status == boardStatus.ActionsOpened ||
- userService.boardService().board().status == boardStatus.ActionsClosed)-->
-<div class="kheader" data-bind="text:boardStatus[userService.boardService().board().status]">    
+<div class="kheader" data-bind="text:title">    
 </div>
 <ul class="nav nav-tabs" id="actionsTabs" role="tablist" style="margin-top: 30px;">
     <li class="nav-item">
@@ -26,7 +22,7 @@ userService.boardService().board() != null &&
                 <tr>
                     <td data-bind="text:message"></td>
                     <td data-bind="text:votes.length"></td>
-                    <td><retro-action-manager params="card:$data"></retro-action-manager></td>
+                    <td><retro-action-manager params="board:$parent.board, card:$data"></retro-action-manager></td>
                 </tr>
             </tbody>
         </table>
@@ -50,10 +46,9 @@ userService.boardService().board() != null &&
                     <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Significant).length"></td>
                     <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Unexpected).length"></td>
                     <td data-bind="text:votes.length"></td>
-                    <td><retro-action-manager params="card:$data"></retro-action-manager></td>
+                    <td><retro-action-manager params="board:$parent.board, card:$data"></retro-action-manager></td>
                 </tr>
             </tbody>
         </table>
     </div>    
 </div>
-<!-- /ko -->
