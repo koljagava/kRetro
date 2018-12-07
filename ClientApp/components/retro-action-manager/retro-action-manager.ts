@@ -1,14 +1,17 @@
 import * as ko from 'knockout';
+import * as $ from 'jquery';
 import { UserService } from '../../services/user.service';
 import * as Boostrap from 'bootstrap';
 import * as feather from 'feather-icons';
 import { CardBase } from '../../models/persistency/cardBase';
-import { RetroAction } from '../../models/persistency/retroAction';
+import { RetroAction, RetroActionStatus } from '../../models/persistency/retroAction';
 import { BoardStatus, Board } from '../../models/persistency/board';
+import { User } from '../../models/persistency/user';
 
 interface IRetroActionManagerParams {
     board: KnockoutObservable<Board>;
     card : CardBase
+    teamUsers : KnockoutObservableArray<User>
 }
 
 export class RetroActionManagerViewModel {
@@ -19,8 +22,26 @@ export class RetroActionManagerViewModel {
     public selectedFieldId : string = null;
     public boardStatus = BoardStatus;
     public board: KnockoutObservable<Board>;
-    public actions: KnockoutComputed<RetroAction[]>;
+    public actions: KnockoutComputed<Array<RetroAction>>;
     public isDisabled: KnockoutComputed<boolean>;
+    public teamUsers : KnockoutObservableArray<User> = ko.observableArray([]);
+    public retroActionStatus = RetroActionStatus;
+    private _retroActionStatusList: Array<string> =[];
+
+    public get retroActionStatusList(){
+        if (this._retroActionStatusList.length != 0)
+            return this._retroActionStatusList;
+        for (var enumMember in RetroActionStatus) {
+            if (isNaN(Number(RetroActionStatus[enumMember])))
+                continue;
+                this._retroActionStatusList.push(RetroActionStatus[enumMember])
+         }
+         return this._retroActionStatusList;
+    };
+
+    public getActionStatusName = (data:any) =>{
+        return RetroActionStatus[data];
+    }
 
     public constructor(params: IRetroActionManagerParams) {
         if (params == null){
@@ -32,29 +53,51 @@ export class RetroActionManagerViewModel {
         if (params.board == null){
             throw new Error("board can not be null");
         }
+        if (params.teamUsers == null){
+            throw new Error("teamUsers can not be null");
+        }
         this.card = ko.observable<CardBase>(params.card);
         this.board = params.board;
+        this.teamUsers = params.teamUsers;
 
         this.actions = ko.computed(():Array<RetroAction> =>{
-            let actions : Array<RetroAction> = [];
+            let acts : Array<RetroAction>= [];
             if (this.card() != null &&
-                this.board()!=null){
-                actions = this.board().actions.filter((act)=> act.card.id ==this.card().id);
-                setTimeout(()=>{
-                    if (this.selectedFieldId != null){
-                        const ele = <HTMLInputElement>document.getElementById(this.selectedFieldId);
-                        if (ele!= null){
-                            ele.focus();
-                            ele.select();
+                this.board()!=null &&
+                this.teamUsers().length != 0){
+                    acts = this.board().actions.filter((act)=> act.card.id ==this.card().id).map(act => {
+                        let teamUser : User;
+                        if (act.inChargeTo!= null){
+                            teamUser = this.teamUsers().find(usr => usr.id == act.inChargeTo.id);
+                            if (teamUser != null){
+                                act.inChargeTo = teamUser;
+                            }
                         }
-                    }
-                }, 0);
+                        if (act.whoChecks!= null){
+                            teamUser = this.teamUsers().find(usr => usr.id == act.whoChecks.id);
+                            if (teamUser != null){
+                                act.whoChecks = teamUser;
+                            }
+                        }
+                        return act;
+                    });
+                    setTimeout(()=>{
+                        if (this.selectedFieldId != null){
+                            const ele = <HTMLInputElement>document.getElementById(this.selectedFieldId);
+                            if (ele!= null){
+                                ele.focus();
+                                if (ele.select){
+                                    ele.select();
+                                }
+                            }
+                        }
+                    }, 0);
             }
             if (this.board()!= null &&
                 this.board().status == this.boardStatus.ActionsOpened){
-                actions.push(new RetroAction(this.card()));
+                    acts.push(new RetroAction(this.card()));
             }
-            return actions;
+            return acts;
         }).extend({ notify: 'always' });
 
         this.isDisabled = ko.computed((): boolean =>{
@@ -70,11 +113,17 @@ export class RetroActionManagerViewModel {
         this.selectedFieldId = (<HTMLElement>kEvt.currentTarget).id;
     }
 
+    public saveStatus = (action : RetroAction) => {
+        this.userService.boardService().updateAction(action);
+    }
+
     public saveAction = (action : RetroAction, kEvt : KeyboardEvent) : boolean => {
-        this.selectedFieldId = null;
+        if ((<HTMLElement>kEvt.currentTarget).getAttribute('type') == 'input'){
+            this.selectedFieldId = null;
+        }
         if (action.description != "" ||
-            action.inChargeTo  != "" ||
-            action.whoChecks != ""){
+            action.inChargeTo != null ||
+            action.whoChecks != null){
             this.userService.boardService().updateAction(action);
         }
         return true;

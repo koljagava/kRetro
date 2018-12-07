@@ -6,5 +6,5 @@ export class User {
     public password: string|null = null;
     public firstName: string|null = null;
     public lastName: string|null = null;
-    public teams : Array<Team> = new Array<Team>();    
+    public team : Team|null = null;
 }

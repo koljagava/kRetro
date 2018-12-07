@@ -5,6 +5,8 @@ import { CardGood } from '../../models/persistency/cardGood';
 import { CardBad, BadVoteType } from '../../models/persistency/cardBad';
 import * as feather from 'feather-icons';
 import { RetroActionManagerViewModel } from '../retro-action-manager/retro-action-manager';
+import { User } from '../../models/persistency/user';
+import { UserService } from '../../services/user.service';
 
 
 export interface IRetroActionsViewModelParams{
@@ -20,14 +22,19 @@ export class RetroActionsViewModel {
     public feather =  feather;
     public board: KnockoutObservable<Board> = ko.observable<Board>(null);
     public title: KnockoutSubscribable<string> = ko.observable<string>("");
-    cardsGood: KnockoutComputed<CardGood[]>;
-    cardsBad: KnockoutComputed<CardBad[]>;
+    public cardsGood: KnockoutComputed<CardGood[]>;
+    public cardsBad: KnockoutComputed<CardBad[]>;
+    public teamUsers : KnockoutObservableArray<User> = ko.observableArray([]);
 
     constructor(params : IRetroActionsViewModelParams) {
         if (params == null)
             throw new Error("params can not be null.");
         this.board = params.board;
         this.title = params.title;
+
+        UserService.getTeamUsers().then(users =>{
+            this.teamUsers(users);
+        });
 
         this.cardsGood = ko.computed(():Array<CardGood> =>{
             if (this.board()!=null){
@@ -61,7 +68,8 @@ export class RetroActionsViewModel {
                 });
             }
             return [];
-        });    
+        });
+
     }
 }
 

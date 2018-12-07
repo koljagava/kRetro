@@ -48,7 +48,6 @@ export class RetroCardViewModel {
             this.userService.currentUser().id != this.card.user.id ||
             (this.userService.boardService().board().status != this.boardStatus.WhatDoesntOpened &&
              this.userService.boardService().board().status != this.boardStatus.WhatWorksOpened)) {
-            this.cardExit();
             return true;
         }
         this.isDisabled(false);

@@ -2,54 +2,45 @@
 import { UserService } from '../../services/user.service';
 import {User} from '../../models/persistency/user';
 import {Team} from '../../models/persistency/team';
-import * as komap from 'knockout-mapping';
 
 export class RegisterViewModel {
-    public user :KnockoutObservable<KnockoutObservableType<User>> = ko.observable(null);
+    public user :KnockoutObservable<User> = ko.observable(new User());
     public loading = ko.observable<boolean>(false);
     public submitted = ko.observable<boolean>(false);
-    public availableTeams = ko.observableArray<Team>();
-    public testUser:any;
+    public availableTeams = UserService.teams;
+    public userService = UserService;
 
-    private static userMappingOptions = {
-            'teams': {
-                create: (options:any) => {
-                    return options.data;
-                }
+    constructor() {     
+        if (this.userService.currentUser() != null && 
+            this.userService.currentUser().id != 0){            
+            this.user(this.cloneUser(this.userService.currentUser()));
+        }
+        this.userService.currentUser.subscribe((value) => {
+            if (value != undefined &&  value!= null){
+                this.user(this.cloneUser(value));
             }
-        };            
-    constructor() {
-        this.user= ko.observable(komap.fromJS(new User(), RegisterViewModel.userMappingOptions));
-        UserService.currentUser.subscribe(() => {
-            this.user(komap.fromJS(UserService.currentUser(), RegisterViewModel.userMappingOptions));
         });
-        UserService.getTeams()
-        .then(
-            data => {
-                let selected = new Array<Team>();
-                let tt = data.map((team)=>{
-                    if (this.user()!=null){
-                        let ele = this.user().teams().filter((ele:Team)=> ele.id == team.id);
-                        if (ele.length==1)
-                            selected.push(team)
-                        return team;
-                    }
-                    return team;
-                });
-                this.availableTeams(tt);
-                if (selected.length!=0)
-                    this.user().teams(selected);
-            },
-            error => {
-                alert(error);                    
-            });
+    }
+
+
+    private cloneUser = (user: User) : User => {
+        if (user == undefined || user == null){
+            return null;
+        }
+        const clone = new User();
+        clone.id = user.id;
+        clone.firstName = user.firstName;
+        clone.lastName = user.lastName;
+        clone.username = user.username;
+        clone.password = user.password;
+        clone.team = user.team;
+        return clone;
     }
 
     register() {
         this.loading(true);
-        this.testUser = JSON.stringify(komap.toJS<User>(this.user()));
         if (UserService.currentUser()!=null){
-            UserService.update(komap.toJS<User>(this.user()))
+            UserService.update(this.user())
                 .then(
                     data => {
                         alert('Update successful');
@@ -59,10 +50,8 @@ export class RegisterViewModel {
                         alert(error);
                         this.loading(false);
                     });
-        }else{
-            this.testUser = komap.toJS<User>(this.user());
-            this.testUser.id = 0;
-            UserService.create(this.testUser)
+        } else {
+            UserService.create(this.user())
                 .then(
                     data => {
                         alert('Registration successful');

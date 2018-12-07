@@ -9,8 +9,8 @@ namespace kRetro.BusinessLogic.Models.Persistency
     {
         public int Id {get;set;}
         public string Description {get;set;}
-        public string InChargeTo {get;set;}
-        public string WhoChecks {get;set;}
+        public User InChargeTo {get;set;}
+        public User WhoChecks {get;set;}
         public CardBase Card {get;set;}
         public RetroActionStatus Status {get;set;}
     }

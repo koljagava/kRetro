@@ -11,6 +11,6 @@
         <!-- /ko -->
     </span>
     <!-- /ko -->
-    <textarea style="border: 0px; width: 100%" data-bind="text:card.message, attr:{disabled:isDisabled}, event:{blur:cardExit, keydown:checkEnter, pointerdown:doEdit}">
+    <textarea style="border: 0px; width: 100%" data-bind="value:card.message, disable:isDisabled, event:{pointerdown:doEdit, blur:cardExit, keydown:checkEnter}">
     </textarea>
 </div>

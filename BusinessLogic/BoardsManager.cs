@@ -121,6 +121,10 @@ namespace kRetro.BusinessLogic
 
         public BoardManager(int teamId, IClientProxy group){
             this.Group = group;
+            BoardTimer = new System.Timers.Timer(60000);
+            BoardTimer.Enabled=false;
+            BoardTimer.AutoReset=true;
+            BoardTimer.Elapsed += OnOneMinutePassed;
             using(var context = new LiteDbContext()){
                 Team = context.Teams.Include(t=> t.BoardConfiguration).FindById(teamId); 
                 var boards = context.Boards
@@ -134,10 +138,6 @@ namespace kRetro.BusinessLogic
                     RestatBoard();
                 }
             }
-            BoardTimer = new System.Timers.Timer(60000);
-            BoardTimer.Enabled=false;
-            BoardTimer.AutoReset=true;
-            BoardTimer.Elapsed += OnOneMinutePassed;
         }
 
         private async void RestatBoard()
@@ -513,20 +513,18 @@ namespace kRetro.BusinessLogic
             await _boardLock.WaitAsync();
             try
             {
-                if (Board==null)
-                    throw new Exception("Board does not exists.");
-
                 if (action==null)
                     throw new Exception("Action can not be null.");
 
                 if (action.Card==null)
                     throw new Exception($"Action's linked card can not be null [action : {action.Description??"[empty]"}].");
 
-                var extAct = Board.Actions.Find(act=> act.Id == action.Id);
-
                 using(var context = new LiteDbContext()){
+                    var extAct = context.Actions.FindById(action.Id);
 
                     if (extAct == null){
+                        if (Board==null)
+                            throw new Exception("Board does not exists.");
                         context.Actions.Insert(action);
                         Board.Actions.Add(action);
                         context.Boards.Update(Board);

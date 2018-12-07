@@ -1,4 +1,5 @@
 import { CardBase } from "./cardBase";
+import { User } from "./user";
 
 export enum RetroActionStatus {
     New = 0,
@@ -9,8 +10,8 @@ export enum RetroActionStatus {
 export class RetroAction {
     public id: number = 0;
     public description: string = "";
-    public inChargeTo: string = "";
-    public whoChecks: string = "";
+    public inChargeTo: User|null = null;
+    public whoChecks: User|null = null;
     public card: CardBase;
     public status: RetroActionStatus = RetroActionStatus.New;
 

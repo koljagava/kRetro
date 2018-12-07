@@ -1,7 +1,7 @@
 {
   "name": "kretro",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.2",
   "scripts": {
     "clean:install": "npm run clean && rimraf ./node_modules ./bin ./obj ./package-lock.json && dotnet restore && npm i",
     "lint": "tslint -p tsconfig.json",

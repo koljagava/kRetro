@@ -50,28 +50,39 @@ namespace kRetro.Controllers
             using (var context = new LiteDbContext())
             {
                 //TODO : what about if id is not exists?
-                var user = context.Users.Include(u => u.Teams).FindById(param.UserId);
+                var user = context.Users.FindById(param.UserId);
                 return new JsonResult(user);
             }
         }
 
         [HttpPost("[action]")]
-        public JsonResult GetUserTeams([FromBody] UserIdParam param)
+        public JsonResult GetTeams()
         {
             using (var context = new LiteDbContext())
             {
-                if (param== null || !param.UserId.HasValue)
+                return new JsonResult(context.Teams.Include(t=> t.BoardConfiguration).FindAll().ToList());
+            }
+        }
+
+        [HttpPost("[action]")]
+        public JsonResult GetTeamUsers([FromBody] TeamIdParam param)
+        {
+            using (var context = new LiteDbContext())
+            {
+                if (param== null || !param.TeamId.HasValue)
                 {
-                    return new JsonResult(context.Teams.Include(t => t.BoardConfiguration).FindAll().ToList());
+                    throw new Exception("UserId must not null");
                 }
-                var uTeamIds = context.Users.FindById(param.UserId.Value).Teams.Select(t => t.Id).ToList();
-                return new JsonResult(context.Teams.Include(t => t.BoardConfiguration).Find(t=> uTeamIds.Exists(utId=> utId == t.Id)).ToList());
+                return new JsonResult(context.Users.Find(u=> u.Team.Id == param.TeamId).ToList());
             }
         }
 
         [HttpPost("[action]")]
         public JsonResult GetBoardsHistory([FromBody] TeamIdParam param)
         {
+            // TODO : "using" statement generate an HTTP error 
+            // provare a fare un ciclo della lista prima di darla al result
+
             var context = new LiteDbContext();
                 var boards = context.Boards
                                 .Include(b=> b.Actions)

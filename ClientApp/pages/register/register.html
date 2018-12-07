@@ -1,39 +1,39 @@
 ﻿<div class="container">
-    <div class="col-md-6 col-md-offset-1">
-        <h2 data-bind="if:user().id()==null">Register</h2>
-        <h2 data-bind="if:user().id()!=null">Your Data</h2>
+    <div class="col-md-6 col-md-offset-1" data-bind="if: user()!=null">
+        <h2 data-bind="if:user().id==null">Register</h2>
+        <h2 data-bind="if:user().id!=null">Your Data</h2>
         <form name="form" data-bind="with:user" novalidate>
-            <div class="form-gr$parent.oup" data-bind="css:{'has-error': $parent.submitted() && (firstName() == null || firstName() == '')}">
+            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (firstName == null || firstName == '')}">
                 <label for="firstName">First Name</label>
                 <input type="text" class="form-control" data-bind="value:firstName" required />
-                <div data-bind="if: $parent.submitted() && (firstName() == null || firstName() == '')" class="help-block">First Name is required</div>
+                <div data-bind="if: $parent.submitted() && (firstName == null || firstName == '')" class="help-block">First Name is required</div>
             </div>
-            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (lastName() == null || lastName() == '')}">
+            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (lastName == null || lastName == '')}">
                 <label for="lastName">Last Name</label>
                 <input type="text" class="form-control" data-bind="value:lastName" required />
-                <div data-bind="if: $parent.submitted() && (lastName() == null || lastName() == '')" class="help-block">Last Name is required</div>
+                <div data-bind="if: $parent.submitted() && (lastName == null || lastName == '')" class="help-block">Last Name is required</div>
             </div>
-            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (username() == null || username() == '')}">
+            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (username == null || username == '')}">
                 <label for="username">Username</label>
                 <input type="text" class="form-control" data-bind="value:username" required />
-                <div data-bind="if: $parent.submitted() && (username() == null || username() == '')" class="help-block">Username is required</div>
+                <div data-bind="if: $parent.submitted() && (username == null || username == '')" class="help-block">Username is required</div>
             </div>
-            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (password() == null || password() == '')}">
+            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (password == null || password == '')}">
                 <label for="password">Password</label>
                 <input type="password" class="form-control" data-bind="value:password" required />
-                <div data-bind="if: $parent.submitted() && (username() == null || username() == '')" class="help-block">Password is required</div>
+                <div data-bind="if: $parent.submitted() && (username == null || username == '')" class="help-block">Password is required</div>
             </div>
-            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (teams() == null || teams().length == 0)}">
-                <label for="teams">Team</label>
-                <select class="form-control" data-bind="options: $parent.availableTeams, optionsText: 'name', selectedOptions:teams" multiple="true"></select>
-                <div data-bind="if: $parent.submitted() && (teams() == null || teams().length == 0)" class="help-block">At least a team is required</div>
+            <div class="form-group" data-bind="css:{'has-error': $parent.submitted() && (team == null)}">
+                <label for="team">Team</label>
+                <select class="form-control" data-bind="value:team, optionsCaption: 'select Team ...', optionsAllowUnset: true, options: $parent.availableTeams, optionsText: 'name'"></select>
+                <div data-bind="if: $parent.submitted() && (team == null)" class="help-block">Team is required</div>
             </div>
         </form>
         <div class="form-group">
-            <!--ko if:user().id()==null -->                
+            <!--ko if:user().id==null -->                
             <button data-bind="attr:{disabled:loading}, click: register" class="btn btn-primary">Register</button>
             <!--/ko-->
-            <!--ko if:user().id()!=null -->                
+            <!--ko if:user().id!=null -->                
             <button data-bind="attr:{disabled:loading}, click: register" class="btn btn-primary">Update</button>
             <!--/ko-->
             <!--ko if:loading -->

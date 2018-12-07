@@ -16,11 +16,18 @@ namespace kRetro.BusinessLogic.Context
         private string board_collection_name = "Boards";
         
         
-        public readonly LiteDatabase Db;        
+        private static LiteDatabase dbInstance = null;
+        public LiteDatabase Db {
+            get {
+                if (dbInstance != null)
+                    return dbInstance;
+                dbInstance = new LiteDatabase(Configuration.LightDbName);
+                return dbInstance;
+            }
+        }
         public LiteDbContext()
         {
             var dbIsNew = !File.Exists(Configuration.LightDbName);
-            Db = new LiteDatabase(Configuration.LightDbName);
             SetUpDbStructure();
             if (dbIsNew){
                 SetUpNewDb();
@@ -66,13 +73,13 @@ namespace kRetro.BusinessLogic.Context
                     Password = "kolja",
                     FirstName = "Nicola",
                     LastName = "Gavazzeni",
-                    Teams = new List<Team>{teams[2]}
+                    Team = teams[2]
                 });
                 Users.Insert(new User
                 {
                     Username = "kota",
                     Password = "kota",
-                    Teams = new List<Team>{teams[2]}
+                    Team = teams[2]
                 });
             }
         }
@@ -87,13 +94,15 @@ namespace kRetro.BusinessLogic.Context
             Users.EnsureIndex(u=> u.Username);
             Boards.EnsureIndex(b=> b.Date);
             Actions.EnsureIndex(a=> a.Card, false);
+            Actions.EnsureIndex(a=> a.InChargeTo, false);
+            Actions.EnsureIndex(a=> a.WhoChecks, false);
             BoardConfigs.EnsureIndex(bc=> bc.Id);
             Cards.EnsureIndex(c=> c.Id);
 
             //**Relations**
             //Users
             BsonMapper.Global.Entity<User>()
-            .DbRef(u => u.Teams, team_collection_name);
+            .DbRef(u => u.Team, team_collection_name);
 
             //Teams
             BsonMapper.Global.Entity<Team>()
@@ -211,30 +220,15 @@ namespace kRetro.BusinessLogic.Context
             {
                 if (disposing)
                 {
-                    Db.Dispose();
-                    // TODO: dispose managed state (managed objects).
+                    //Db.Dispose();
                 }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
                 disposedValue = true;
             }
         }
 
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~LiteDbContext() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
         void IDisposable.Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         #endregion
 
