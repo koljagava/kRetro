@@ -135,12 +135,12 @@ namespace kRetro.BusinessLogic
                                 .Find(b => b.Status != BoardStatus.Closed).ToList();
                 if (boards.Count != 0){
                     Board = boards.Last();
-                    RestatBoard();
+                    RestartBoard();
                 }
             }
         }
 
-        private async void RestatBoard()
+        private async void RestartBoard()
         {
             if (Board.Status == BoardStatus.New){
                  await BroadcastBoardUpdate();
@@ -520,7 +520,11 @@ namespace kRetro.BusinessLogic
                     throw new Exception($"Action's linked card can not be null [action : {action.Description??"[empty]"}].");
 
                 using(var context = new LiteDbContext()){
-                    var extAct = context.Actions.FindById(action.Id);
+                    RetroAction extAct = null;
+                    if (Board!= null)
+                        extAct = Board.Actions.Find(act => act.Id == action.Id);
+                    else 
+                        extAct = context.Actions.FindById(action.Id);
 
                     if (extAct == null){
                         if (Board==null)
