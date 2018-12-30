@@ -19,28 +19,28 @@
     "start": "webpack-dev-server --mode development --hot --progress --color --port 3000 --open"
   },
   "dependencies": {
-    "@aspnet/signalr": "^1.0.4",
-    "ajv": "^6.5.3",
-    "bootstrap": "^4.1.3",
+    "@aspnet/signalr": "^1.1.0",
+    "ajv": "^6.6.2",
+    "bootstrap": "^4.2.1",
     "crossroads": "^0.12.2",
     "event-source-polyfill": "^0.0.16",
-    "feather-icons": "^4.7.3",
+    "feather-icons": "^4.10.0",
     "history": "^4.7.2",
     "isomorphic-fetch": "^2.2.1",
     "jquery": "^3.3.1",
     "knockout": "^3.4.2",
     "knockout-mapping": "^2.6.0",
-    "popper.js": "^1.14.4"
+    "popper.js": "^1.14.6"
   },
   "devDependencies": {
-    "@types/bootstrap": "^4.1.2",
+    "@types/bootstrap": "^4.1.4",
     "@types/core-js": "^2.5.0",
     "@types/crossroads": "^0.0.30",
     "@types/es6-promise": "0.0.32",
     "@types/feather-icons": "^4.7.0",
-    "@types/history": "^4.7.0",
-    "@types/jquery": "^3.3.6",
-    "@types/knockout": "^3.4.58",
+    "@types/history": "^4.7.2",
+    "@types/jquery": "^3.3.29",
+    "@types/knockout": "^3.4.62",
     "@types/knockout.mapping": "^2.0.33",
     "@types/signals": "^1.0.1",
     "@types/webpack-env": "^1.13.6",
@@ -52,13 +52,13 @@
     "file-loader": "^2.0.0",
     "json-loader": "^0.5.7",
     "raw-loader": "^0.5.1",
-    "style-loader": "^0.23.0",
-    "typescript": "^3.0.3",
-    "url-loader": "^1.1.1",
-    "webpack": "^4.12.17",
-    "webpack-cli": "^3.1.0",
+    "style-loader": "^0.23.1",
+    "typescript": "^3.2.2",
+    "url-loader": "^1.1.2",
+    "webpack": "^4.28.2",
+    "webpack-cli": "^3.1.2",
     "webpack-dev-middleware": "^1.12.2",
-    "webpack-dev-server": "^3.1.8",
-    "webpack-hot-middleware": "^2.23.1"
+    "webpack-dev-server": "^3.1.14",
+    "webpack-hot-middleware": "^2.24.3"
   }
 }

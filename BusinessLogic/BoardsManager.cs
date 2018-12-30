@@ -34,7 +34,7 @@ namespace kRetro.BusinessLogic
                     var board = Boards[userBoard.TeamId];
                     board.AddUser(userBoard.ConnectionId, userBoard.UserId);
                     if (board.Board!=null)
-                        await HubContext.Clients.Client(userBoard.ConnectionId).SendAsync("BoardUpdate", board.Board);
+                        board.BroadcastBoardUpdate(true, HubContext.Clients.Client(userBoard.ConnectionId)).Wait();
                 }
                 else
                 {
@@ -129,12 +129,12 @@ namespace kRetro.BusinessLogic
                 Team = context.Teams.Include(t=> t.BoardConfiguration).FindById(teamId); 
                 var boards = context.Boards
                                 .Include(b=> b.Actions)
-                                .Include(b=> b.WhatWorks)
-                                .Include(b=> b.WhatDoesnt)
                                 .Include(b=> b.Manager)
                                 .Find(b => b.Status != BoardStatus.Closed).ToList();
                 if (boards.Count != 0){
                     Board = boards.Last();
+                    Board.WhatWorks = context.Cards.Include(c=> c.User).Find(c=> Board.WhatWorks.Exists(ww=> ww.Id == c.Id)).Cast<CardGood>().ToList();
+                    Board.WhatDoesnt = context.Cards.Include(c=> c.User).Find(c=> Board.WhatDoesnt.Exists(ww=> ww.Id == c.Id)).Cast<CardBad>().ToList();
                     RestartBoard();
                 }
             }
@@ -143,7 +143,7 @@ namespace kRetro.BusinessLogic
         private async void RestartBoard()
         {
             if (Board.Status == BoardStatus.New){
-                 await BroadcastBoardUpdate();
+                 await BroadcastBoardUpdate(true);
                  return;
             }
 
@@ -163,13 +163,16 @@ namespace kRetro.BusinessLogic
         {
             ElapsedMinutes++;
             int minutes=0;
+            IEnumerable<CardBase> cards = null;
             switch(Board.Status)
             {
                 case BoardStatus.WhatWorksOpened:
                     minutes = Team.BoardConfiguration.WhatWorksMinutes;
+                    cards = Board.WhatWorks;
                     break;
                 case BoardStatus.WhatDoesntOpened:
                     minutes = Team.BoardConfiguration.WhatDoesntMinutes;
+                    cards = Board.WhatDoesnt;
                     break;
                 default:
                     return;
@@ -177,20 +180,30 @@ namespace kRetro.BusinessLogic
             if (minutes == ElapsedMinutes){
                 StopBoardTimer();
                 ChangeBoardStatusAsync(true).Wait();
-                Group.SendAsync("SendMessage", "Cards insert disabled.");
-                Group.SendAsync("PublishCards").Wait();
                 return;
             }
 
             if (Math.Round((decimal)((minutes+1) / 2)) == ElapsedMinutes){
                 Group.SendAsync("SendMessage", "Let show other cards.");
-                Group.SendAsync("PublishCards").Wait();
+                UpdateAllCardsAsVisible(cards);
+                BroadcastBoardUpdate().Wait();
             }
 
             if ((minutes - ElapsedMinutes)<=1){
                 Group.SendAsync("SendMessage", "One minute left.").Wait();
             }
-        }        
+        }
+
+        private void UpdateAllCardsAsVisible(IEnumerable<CardBase> cards)
+        {
+            using(var context = new LiteDbContext()){
+                foreach(var card in cards.Where(c=> !c.Visible)){
+                    card.Visible = true;
+                    context.Cards.Update(card);
+                }
+            }
+        }
+
         internal void AddUser(string connectionId, int userId)
         {
             var user = ConnectedUser.Keys.FirstOrDefault(u=> u.Id == userId);
@@ -231,6 +244,7 @@ namespace kRetro.BusinessLogic
                 throw new Exception($"ConnectedUser not found for connection Id {connectionId}");
             return user;
         }
+
         internal bool IsConnectionIn(string connectionId){
             return ConnectedUser.Values.Any(cid=> cid == connectionId);
         }
@@ -252,7 +266,7 @@ namespace kRetro.BusinessLogic
                     Team.Boards.Add(Board);
                     context.Teams.Update(Team);
                 }
-                await BroadcastBoardUpdate();
+                await BroadcastBoardUpdate(true);
             }
             finally
             {
@@ -274,7 +288,7 @@ namespace kRetro.BusinessLogic
                             Message = message,
                             CreationDateTime = DateTime.Now,
                             User = GetConnectedUser(connectionId),
-                            Visible = true
+                            Visible = false
                         };
                         using(var context = new LiteDbContext()){
                             context.Cards.Insert(gCard);
@@ -287,7 +301,7 @@ namespace kRetro.BusinessLogic
                             Message = message,
                             CreationDateTime = DateTime.Now,
                             User = GetConnectedUser(connectionId),
-                            Visible = true
+                            Visible = false
                         };
                         using(var context = new LiteDbContext()){
                             context.Cards.Insert(bCard);
@@ -433,26 +447,24 @@ namespace kRetro.BusinessLogic
                     case BoardStatus.New :
                         nextStatus = BoardStatus.WhatWorksOpened;
                         StartBoardTimer();
-                        await Group.SendAsync("SendMessage", "Time started for \"What Works\", please write your cards.");
                         break;
                     case BoardStatus.WhatWorksOpened:
                         if (!isInternalCall)
                             throw new Exception("THis status Changes can not be done by user.");
+                        UpdateAllCardsAsVisible(Board.WhatWorks);
                         nextStatus = BoardStatus.WhatWorksClosed;
-                        await Group.SendAsync("SendMessage", " please do your votes.");
                         break;
                     case BoardStatus.WhatWorksClosed:
                         nextStatus = BoardStatus.WhatDoesntOpened;
                         StartBoardTimer();
-                        await Group.SendAsync("SendMessage", "Time started for \"What Doesn't\", please write your cards.");
                         break;
                     case BoardStatus.WhatDoesntOpened:
                         if (!isInternalCall)
                             throw new Exception("THis status Changes can not be done by user.");
-                        nextStatus = BoardStatus.WhatDesntClosed;
-                        await Group.SendAsync("SendMessage", " please do your votes.");
+                        UpdateAllCardsAsVisible(Board.WhatDoesnt);
+                        nextStatus = BoardStatus.WhatDoesntClosed;
                         break;
-                    case BoardStatus.WhatDesntClosed:
+                    case BoardStatus.WhatDoesntClosed:
                         nextStatus = BoardStatus.ActionsOpened;
                         break;
                     case BoardStatus.ActionsOpened:
@@ -471,12 +483,7 @@ namespace kRetro.BusinessLogic
                     if (Board.Status == BoardStatus.Closed){
                         Board = null;
                     }
-                    await BroadcastBoardUpdate();
-                    if (Board != null && 
-                        (Board.Status == BoardStatus.WhatWorksOpened || 
-                        Board.Status == BoardStatus.WhatDoesntOpened)){
-                        await Group.SendAsync("PublishCards");                   
-                    }
+                    await BroadcastBoardUpdate(true);
                 }
             }
             finally
@@ -503,9 +510,37 @@ namespace kRetro.BusinessLogic
             }            
         }
  
-        private async Task BroadcastBoardUpdate()
+        internal async Task BroadcastBoardUpdate(bool notifyForAll=false, IClientProxy client = null)
         {
-            await Group.SendAsync("BoardUpdate", Board);
+            IClientProxy proxy = client??Group;
+            await proxy.SendAsync("BoardUpdate", Board);
+            if (notifyForAll && Board != null) {
+                switch(Board.Status)
+                {
+                    case BoardStatus.New :
+                        break;
+                    case BoardStatus.WhatWorksOpened:
+                        await proxy.SendAsync("SendMessage", "Time started for \"What Works\", please write your cards.");
+                        break;
+                    case BoardStatus.WhatWorksClosed:
+                        await proxy.SendAsync("SendMessage", "Cards insert disabled.");
+                        await proxy.SendAsync("SendMessage", " please do your votes.");
+                        await proxy.SendAsync("PublishCards");
+                        break;
+                    case BoardStatus.WhatDoesntOpened:
+                        await proxy.SendAsync("SendMessage", "Time started for \"What Doesn't\", please write your cards.");
+                        break;
+                    case BoardStatus.WhatDoesntClosed:
+                        await proxy.SendAsync("SendMessage", "Cards insert disabled.");
+                        await proxy.SendAsync("SendMessage", " please do your votes.");
+                        await proxy.SendAsync("PublishCards");
+                        break;
+                    case BoardStatus.ActionsOpened:
+                        break;
+                    case BoardStatus.ActionsClosed:
+                        break;
+                }
+            }
         }
 
         internal async Task UpdateActionAsync(string connectionId, RetroAction action)
@@ -542,8 +577,7 @@ namespace kRetro.BusinessLogic
                         context.Actions.Update(extAct);
                     }
                 }
-
-                await Group.SendAsync("BoardUpdate", Board);
+                await BroadcastBoardUpdate();
             }
             finally
             {

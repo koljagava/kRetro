@@ -24,7 +24,6 @@ export class BoardService {
     private boardHub : signalR.HubConnection|null = null;
     public connectedUsers = ko.observableArray<User>(new Array<User>());
     public board : KnockoutObservable<Board> = ko.observable<Board>(null);
-    public doPublishCards : KnockoutSubscribable<void> = new ko.subscribable();
     public serviceMessages : KnockoutObservableArray<IBoardServiceMessage> = ko.observableArray([]);
     public maxServiceMessagesAllowed : number = 4;
     public minutesServiceMessagesInQueue : number = 1;
@@ -40,7 +39,6 @@ export class BoardService {
         this.boardHub.on('BoardUpdate',this.boardUpdate);
         this.boardHub.on('BoardConfigUpdate',this.boardConfigUpdate);
         this.boardHub.on('SendMessage',this.messageSent);
-        this.boardHub.on('PublishCards',this.publishCards);
         this.boardHub.start().catch((reason:any)=>{
             alert("errore connessione: " + reason + ".");
          });
@@ -51,8 +49,8 @@ export class BoardService {
             return;
         this.boardHub.off('ConnectedUsersUpdate',this.connectedUserUpdate)
         this.boardHub.off('BoardUpdate',this.boardUpdate)
+        this.boardHub.off('BoardConfigUpdate',this.boardConfigUpdate);
         this.boardHub.off('SendMessage',this.messageSent);
-        this.boardHub.off('PublishCards',this.publishCards);
         this.boardHub.stop();
     }
 
@@ -184,8 +182,4 @@ export class BoardService {
             this.serviceMessagesIntervalId = null;
         }
     }
-
-    private publishCards = () => {
-        this.doPublishCards.notifySubscribers();
-    }    
 }

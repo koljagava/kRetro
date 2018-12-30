@@ -7,9 +7,34 @@ span[disabled] {
     padding-right: 2px;
     padding-bottom: 0px;
 }
+.card-user {
+    font-size: smaller;
+}
+
+.message{
+    border: 0px; 
+    width: 100%;
+}
+.message[readonly]{
+  background-color: lightgrey;
+}
+
 .card-icon-container{
     padding-top: 2px;
 }
 a.card-icon { 
-    cursor: pointer; 
+    cursor: pointer;
+
+}
+
+a.card-icon span { 
+    color: lightblue;
+}
+
+a.card-icon:hover span{ 
+    color: darkblue;
+}
+
+a.card-icon-selected span{ 
+    color: darkblue;
 }

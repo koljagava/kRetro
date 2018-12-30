@@ -27,6 +27,11 @@ namespace kRetro.Controllers
             public int? TeamId { get; set; }
         }
 
+        public class BoardIdParam
+        {
+            public int? BoardId { get; set; }
+        }
+
         [HttpPost("[action]")]
         public JsonResult Authenticate([FromBody] LoginData loginData)
         {
@@ -85,13 +90,24 @@ namespace kRetro.Controllers
 
             var context = new LiteDbContext();
                 var boards = context.Boards
+                                .Find(b => b.Status == BoardStatus.Closed).OrderByDescending(b=> b.Date).ToList();
+
+                return new JsonResult(boards);
+        }
+
+        [HttpPost("[action]")]
+        public JsonResult GetBoard([FromBody] BoardIdParam param)
+        {
+            // TODO : "using" statement generate an HTTP error 
+            // provare a fare un ciclo della lista prima di darla al result
+
+            var context = new LiteDbContext();
+                return new JsonResult(context.Boards
                                 .Include(b=> b.Actions)
                                 .Include(b=> b.WhatWorks)
                                 .Include(b=> b.WhatDoesnt)
                                 .Include(b=> b.Manager)
-                                .Find(b => b.Status == BoardStatus.Closed).OrderByDescending(b=> b.Date).ToList();
-
-                return new JsonResult(boards);
+                                .FindById(param.BoardId));
         }
 
         [HttpPost("[action]")]

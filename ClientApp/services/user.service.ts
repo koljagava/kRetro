@@ -14,7 +14,6 @@ class UserServiceSingleton {
     public teams = ko.observableArray<Team>([]);
     public boardService = ko.observable<BoardService>(null);    
     private history : History = null;
-    testResult: Response;
 
     private constructor(){
         this.currentUser.subscribe((user: User) =>{
@@ -96,14 +95,23 @@ class UserServiceSingleton {
                 reject(new Error("currentTeam is not defined."));
             });
         }
-        this.testResult = await fetch('api/User/GetBoardsHistory', {
+        return (await fetch('api/User/GetBoardsHistory', {
             method: "POST",
             body: JSON.stringify({ teamId: this.currentTeam().id }),
             headers: {
                 "Content-Type": "application/json"
             }
-        });
-        return this.testResult.json() as Promise<Array<Board>>;
+        })).json() as Promise<Array<Board>>;
+    }
+
+    public getBoard = async (boardId : number) : Promise<Board> => {
+        return (await fetch('api/User/GetBoard', {
+            method: "POST",
+            body: JSON.stringify({ boardId: boardId }),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })).json() as Promise<Board>;
     }
 
     public getTeamUsers = async () : Promise<Array<User>> =>{

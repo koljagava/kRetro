@@ -13,6 +13,7 @@ export class RetroCardViewModel {
     public card : CardBase;
     public cardType = CardType;
     public boardStatus = BoardStatus;
+    public badVoteType = BadVoteType;
     public isDisabled = ko.observable(true);
     public feather = feather;
     public clrVote = ko.observable('LightSteelBlue');
@@ -22,13 +23,6 @@ export class RetroCardViewModel {
 
     public constructor(params: {card : CardBase}){
         this.card = params.card;
-        if (this.card.type == CardType.Good){
-            this.setGoodVoteClr();
-        } else if (this.card.type == CardType.Bad){
-            this.setBadVoteClr(this.clrEasy, BadVoteType.Easy);
-            this.setBadVoteClr(this.clrSignificant, BadVoteType.Significant);
-            this.setBadVoteClr(this.clrUnexpected, BadVoteType.Unexpected);
-        }
     }
 
     public currentBoardStatus = ko.computed((): BoardStatus=>{
@@ -45,16 +39,18 @@ export class RetroCardViewModel {
             return true;
         if (this.userService.boardService() == null ||
             this.userService.currentUser() == null ||        
-            this.userService.currentUser().id != this.card.user.id ||
-            (this.userService.boardService().board().status != this.boardStatus.WhatDoesntOpened &&
-             this.userService.boardService().board().status != this.boardStatus.WhatWorksOpened)) {
+             this.userService.currentUser().id != this.card.user.id ||
+             (this.userService.boardService().board().status != this.boardStatus.WhatDoesntOpened &&
+              this.userService.boardService().board().status != this.boardStatus.WhatWorksOpened)) {
             return true;
         }
         this.isDisabled(false);
         return true;
     }
 
-    public cardExit = ()=>{
+    public cardExit = (cvm : RetroCardViewModel, kEvt : KeyboardEvent)=>{
+        const eleValue = (<HTMLInputElement>kEvt.currentTarget ).value;
+        this.userService.boardService().updateCardMessage(this.card.id, eleValue);
         this.isDisabled(true);
     }
 
@@ -72,56 +68,32 @@ export class RetroCardViewModel {
         if (this.userService.boardService() == null ||
             this.userService.currentUser() == null ||        
             this.userService.currentUser().id != this.card.user.id) {
-            this.cardExit();
             return true;
         }
-        if (kEvt.keyCode == 13){
+        if (kEvt.keyCode == 13) {
             kEvt.preventDefault();
-            this.userService.boardService().updateCardMessage(this.card.id, (<HTMLInputElement>kEvt.currentTarget ).value);
-            (<HTMLInputElement>kEvt.currentTarget ).value = "";
-            this.cardExit();
+            this.cardExit(cvm, kEvt);
             return true;
         }
         return true;
     }
 
-    private setGoodVoteClr(isMouseIn: boolean = false){
-        if (this.hasUserVotedForGood()){
-            this.clrVote('darkblue');
-        }else{
-            this.clrVote(isMouseIn?'darkblue':'LightSteelBlue');
-        }
+    private setVoteClr(ele : HTMLElement){
+        ele.classList.toggle('card-icon-selected');
     }
 
     //#region Vote  
-    public doVote = (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
+    public doVote = (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {        
         const voteStatus = this.userService.boardService().getWhatWorksUserVoteStatus(this.userService.currentUser().id);
         if (this.hasUserVotedForGood() || 
             voteStatus == null ||
-            voteStatus.count < this.userService.currentTeam().boardConfiguration.whatWorksVotesPerUser){
-            this.userService.boardService().updateCardGoodVote(this.card.id);
+            voteStatus.count < this.userService.currentTeam().boardConfiguration.whatWorksVotesPerUser) {
+                this.setVoteClr(<HTMLElement>kEvt.currentTarget);
+                this.userService.boardService().updateCardGoodVote(this.card.id);
         }
-        return true;
-    }
-    
-    public voteMouseIn =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setGoodVoteClr(true);
-        return true;
-    }
-
-    public voteMouseOut =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setGoodVoteClr(false);
         return true;
     }
     //#endregion
-
-    private setBadVoteClr(obs: KnockoutObservable<string>, type: BadVoteType, isMouseIn: boolean = false) {
-        if (this.hasUserVotedForBad(type)){
-            obs('darkblue');
-        }else{
-            obs(isMouseIn?'darkblue':'LightSteelBlue');
-        }
-    }
 
     //#region Easy  
     public doEasy = (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
@@ -129,20 +101,11 @@ export class RetroCardViewModel {
         if (this.hasUserVotedForBad(BadVoteType.Easy) ||
             voteStatus == null ||
             voteStatus.voteTypeCount[BadVoteType.Easy] < this.userService.currentTeam().boardConfiguration.whatDoesntVotesPerUser) {
-            this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Easy);
+                this.setVoteClr(<HTMLElement>kEvt.currentTarget);
+                this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Easy);
         }
         return true;
-    }
-    
-    public easyMouseIn =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setBadVoteClr(this.clrEasy, BadVoteType.Easy, true);
-        return true;
-    }
-
-    public easyMouseOut =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setBadVoteClr(this.clrEasy, BadVoteType.Easy, false);
-        return true;
-    }
+    }    
     //#endregion
 
     //#region Significant
@@ -151,19 +114,10 @@ export class RetroCardViewModel {
         if (this.hasUserVotedForBad(BadVoteType.Significant) ||
             voteStatus == null || 
             voteStatus.voteTypeCount[BadVoteType.Significant] < this.userService.currentTeam().boardConfiguration.whatDoesntVotesPerUser) {
-            this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Significant);
+                this.setVoteClr(<HTMLElement>kEvt.currentTarget);
+                this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Significant);
         }
-        return true;
-    }
-    
-    public significantMouseIn =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setBadVoteClr(this.clrSignificant, BadVoteType.Significant, true);
-        return true;
-    }
-
-    public significantMouseOut =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setBadVoteClr(this.clrSignificant, BadVoteType.Significant, false);
-        return true;
+        return true;        
     }
     //#endregion
 
@@ -173,18 +127,9 @@ export class RetroCardViewModel {
         if (this.hasUserVotedForBad(BadVoteType.Unexpected) ||
             voteStatus == null ||
             voteStatus.voteTypeCount[BadVoteType.Unexpected] < this.userService.currentTeam().boardConfiguration.whatDoesntVotesPerUser){
-            this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Unexpected);
+                this.setVoteClr(<HTMLElement>kEvt.currentTarget);
+                this.userService.boardService().updateCardBadVote(this.card.id, BadVoteType.Unexpected);
         }
-        return true;
-    }
-    
-    public unexpectedMouseIn =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setBadVoteClr(this.clrUnexpected, BadVoteType.Unexpected, true);
-        return true;
-    }
-
-    public unexpectedMouseOut =  (cvm : RetroCardViewModel, kEvt : MouseEvent) : boolean => {
-        this.setBadVoteClr(this.clrUnexpected, BadVoteType.Unexpected, false);
         return true;
     }
     //#endregion

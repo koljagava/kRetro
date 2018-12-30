@@ -25,7 +25,12 @@ export class TeamBoardViewModel {
     };
 
     public selectBoard = (board : Board) =>{
-        this.selectedBoard(board);
+        this.userService.getBoard(board.id)
+        .then((board:Board) =>{
+            this.selectedBoard(board);
+        }, (error : any) =>{
+            throw new Error("Error retreiving Historycal Board ["+ error + "]");
+        });        
     }
 };
 
