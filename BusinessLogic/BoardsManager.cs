@@ -121,9 +121,11 @@ namespace kRetro.BusinessLogic
 
         public BoardManager(int teamId, IClientProxy group){
             this.Group = group;
-            BoardTimer = new System.Timers.Timer(60000);
-            BoardTimer.Enabled=false;
-            BoardTimer.AutoReset=true;
+            BoardTimer = new System.Timers.Timer(60000)
+            {
+                Enabled = false,
+                AutoReset = true
+            };
             BoardTimer.Elapsed += OnOneMinutePassed;
             using(var context = new LiteDbContext()){
                 Team = context.Teams.Include(t=> t.BoardConfiguration).FindById(teamId); 
@@ -133,8 +135,8 @@ namespace kRetro.BusinessLogic
                                 .Find(b => b.Status != BoardStatus.Closed).ToList();
                 if (boards.Count != 0){
                     Board = boards.Last();
-                    Board.WhatWorks = context.Cards.Include(c=> c.User).Find(c=> Board.WhatWorks.Exists(ww=> ww.Id == c.Id)).Cast<CardGood>().ToList();
-                    Board.WhatDoesnt = context.Cards.Include(c=> c.User).Find(c=> Board.WhatDoesnt.Exists(ww=> ww.Id == c.Id)).Cast<CardBad>().ToList();
+                    Board.WhatWorks = context.Cards.Include(c => c.User).Find(c => Board.WhatWorks.Exists(cww => cww.Id == c.Id)).Cast<CardGood>().ToList();
+                    Board.WhatDoesnt = context.Cards.Include(c => c.User).Find(c => Board.WhatDoesnt.Exists(cwd => cwd.Id == c.Id)).Cast<CardBad>().ToList();
                     RestartBoard();
                 }
             }

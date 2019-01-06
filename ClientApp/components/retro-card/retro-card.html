@@ -1,20 +1,19 @@
 <div class="card-header">
     <span class="card-icon-container">
         <!-- ko if: userService.currentTeam().boardConfiguration.showCardUser -->
-        <span class= "card-user float-left" data-bind="text:userService.getUserName(card.user)"></span>
+        <span class="card-user float-left" data-bind="text:userService.getUserName(card.user)"></span>
         <!-- /ko -->
         <!-- ko if: !userService.currentTeam().boardConfiguration.showCardUser -->
-        <span class= "card-user float-left">&nbsp;</span>
+        <span class="card-user float-left">&nbsp;</span>
         <!-- /ko -->
         <!-- ko if: card.type == cardType.Bad && (currentBoardStatus() == boardStatus.WhatWorksClosed || currentBoardStatus() == boardStatus.WhatDoesntClosed) -->
-        <a title="unexpected" data-bind="click:doUnexpected, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForBad(badVoteType.Unexpected)}"><span class= "float-right" data-bind="html:feather.icons['alert-circle'].toSvg({width:14, height:14})"></span></a>
-        <a title="significant" data-bind="click:doSignificant, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForBad(badVoteType.Significant)}"><span class= "float-right" data-bind="html:feather.icons['star'].toSvg({width:14, height:14})"></span></a>
-        <a title="easy" data-bind="click:doEasy, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForBad(badVoteType.Easy)}"><span class= "float-right" data-bind="html:feather.icons['check-square'].toSvg({width:14, height:14})"></span></a>
+        <a title="unexpected" data-bind="click:doUnexpected, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForBad(badVoteType.Unexpected)}"><span class="float-right" data-bind="html:feather.icons['alert-circle'].toSvg({width:14, height:14})"></span></a>
+        <a title="significant" data-bind="click:doSignificant, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForBad(badVoteType.Significant)}"><span class="float-right" data-bind="html:feather.icons['star'].toSvg({width:14, height:14})"></span></a>
+        <a title="easy" data-bind="click:doEasy, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForBad(badVoteType.Easy)}"><span class="float-right" data-bind="html:feather.icons['check-square'].toSvg({width:14, height:14})"></span></a>
         <!-- /ko -->
         <!-- ko if: card.type == cardType.Good && (currentBoardStatus() == boardStatus.WhatWorksClosed || currentBoardStatus() == boardStatus.WhatDoesntClosed)-->
-        <a data-bind="click:doVote, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForGood()}"><span class= "float-right" data-bind="html:feather.icons['thumbs-up'].toSvg({width:14, height:14})"></span></a>
+        <a data-bind="click:doVote, css:{'card-icon': true, 'card-icon-selected': hasUserVotedForGood()}"><span class="float-right" data-bind="html:feather.icons['thumbs-up'].toSvg({width:14, height:14})"></span></a>
         <!-- /ko -->
     </span>
-    <textarea class="message" data-bind="value:card.message, attr:{readonly:isDisabled}, click:doEdit, event:{blur:cardExit, keydown:checkEnter}">
-    </textarea>
+    <textarea cols="30" rows="2" class="message" data-bind="value:card.message, attr:{readonly:isDisabled}, click:doEdit, event:{blur:cardExit, keydown:checkEnter}"></textarea>
 </div>

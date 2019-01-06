@@ -185,7 +185,7 @@ class UserServiceSingleton {
          this.currentUser(null);
          this.currentTeam(null);
          if (this.history!=null)
-            this.history.push('/login');
+            this.history.push('#login');
     };
 
     public canActivate = (history: History, callingRoute : Route) : boolean => {
@@ -194,7 +194,7 @@ class UserServiceSingleton {
             return true;
         }
         // not logged in so redirect to login page with the return url
-        history.push('/login/' + callingRoute.url as History.Path);
+        history.push('#login/' + callingRoute.url as History.Path);
         return false;
     };
 

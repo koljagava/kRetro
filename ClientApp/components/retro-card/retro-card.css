@@ -1,6 +1,7 @@
 span[disabled] {
      pointer-events: none; 
 }
+
 .card-header {
     padding-left: 2px;
     padding-top: 0px;
@@ -14,17 +15,18 @@ span[disabled] {
 .message{
     border: 0px; 
     width: 100%;
+    height : auto;
 }
 .message[readonly]{
   background-color: lightgrey;
 }
 
-.card-icon-container{
-    padding-top: 2px;
+.card-icon-container {
+
 }
+
 a.card-icon { 
     cursor: pointer;
-
 }
 
 a.card-icon span { 

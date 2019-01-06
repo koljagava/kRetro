@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using kRetro.BusinessLogic.Models.Persistency;
 using kRetro.BusinessLogic.Context;
 using Microsoft.AspNetCore.Mvc;

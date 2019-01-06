@@ -7,7 +7,7 @@ import * as feather from 'feather-icons';
 import { RetroActionManagerViewModel } from '../retro-action-manager/retro-action-manager';
 import { User } from '../../models/persistency/user';
 import { UserService } from '../../services/user.service';
-
+import { CardType } from '../../models/persistency/cardBase';
 
 export interface IRetroActionsViewModelParams{
     board : KnockoutObservable<Board>
@@ -69,8 +69,11 @@ export class RetroActionsViewModel {
             }
             return [];
         });
-
     }
+
+    public voteCount = (card: CardBad, type: BadVoteType): number => {
+        return card.votes.filter(vote => vote.type == type).length;
+    };
 }
 
 const actionsComponent = { viewModel: RetroActionsViewModel, template: require('./retro-actions.html') };

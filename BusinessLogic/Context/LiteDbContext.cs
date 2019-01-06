@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using kRetro.BusinessLogic.Models.Persistency;
 using LiteDB;
 
@@ -8,12 +9,12 @@ namespace kRetro.BusinessLogic.Context
 {
     public class LiteDbContext : IDisposable
     {
-        private string user_collection_name = "Users";
-        private string team_collection_name = "Teams";
-        private string boardconfig_collection_name = "BoardConfigs";
-        private string card_collection_name = "Cards";
-        private string action_collection_name = "Actions";
-        private string board_collection_name = "Boards";
+        private const string user_collection_name = "Users";
+        private const string team_collection_name = "Teams";
+        private const string boardconfig_collection_name = "BoardConfigs";
+        private const string card_collection_name = "Cards";
+        private const string action_collection_name = "Actions";
+        private const string board_collection_name = "Boards";
         
         
         private static LiteDatabase dbInstance = null;
@@ -44,25 +45,17 @@ namespace kRetro.BusinessLogic.Context
                 ShowCardUser = false
             };
 
-            var boardConfigs = new List<BoardConfig>{
-                boardConfig,
-                boardConfig.Clone(),
-                boardConfig.Clone()
-            };
-            if (BoardConfigs.Count()==0)
-            {
-                BoardConfigs.InsertBulk(boardConfigs);
-            }
 
             var teams = new List<Team>
             {
-                new Team{ Name="TaxE", BoardConfiguration = boardConfigs[0]},     
-                new Team{ Name="Corporate", BoardConfiguration = boardConfigs[1]},
-                new Team{ Name="Tax & Transversal", BoardConfiguration = boardConfigs[2]}
+                new Team{ Name="TaxE", BoardConfiguration = boardConfig.Clone()},     
+                new Team{ Name="Corporate", BoardConfiguration = boardConfig.Clone()},
+                new Team{ Name="Tax & Transversal", BoardConfiguration = boardConfig.Clone()}
             };
 
             if (Teams.Count()==0)
             {
+                BoardConfigs.InsertBulk(teams.Select(t => t.BoardConfiguration));
                 Teams.InsertBulk(teams);
             }
             if (Users.Count() == 0)

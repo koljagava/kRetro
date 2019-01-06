@@ -42,9 +42,9 @@
             <tbody data-bind="foreach:cardsBad">
                 <tr>
                     <td data-bind="text:message"></td>
-                    <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Easy).length"></td>
-                    <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Significant).length"></td>
-                    <td data-bind="text:votes.filter(vote => vote.type == $parent.badVoteType.Unexpected).length"></td>
+                    <td data-bind="text:$parent.voteCount($data, $parent.badVoteType.Easy)"></td>
+                    <td data-bind="text:$parent.voteCount($data, $parent.badVoteType.Significant)"></td>
+                    <td data-bind="text:$parent.voteCount($data, $parent.badVoteType.Unexpected)"></td>
                     <td data-bind="text:votes.length"></td>
                     <td><retro-action-manager params="board:$parent.board, card:$data, teamUsers:$parent.teamUsers"></retro-action-manager></td>
                 </tr>

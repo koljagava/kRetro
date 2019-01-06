@@ -12,16 +12,25 @@ export class TeamBoardViewModel {
 
     constructor() {
         this.boards = ko.observableArray<Board>([]);
-        this.userService.currentTeam.subscribe((value) =>{
-            if (value != null){
+        if (this.userService.currentTeam() != null) {
                 this.userService.getBoardsHistory()
-                .then((boards:Array<Board>) =>{
+                    .then((boards: Array<Board>) => {
                         this.boards(boards);
-                }, (error : any) =>{
-                    throw new Error("Error retreiving Historycal Boards ["+ error + "]");
-                });
-            }
-        });
+                    }, (error: any) => {
+                        throw new Error("Error retreiving Historycal Boards [" + error + "]");
+                    });
+        } else {
+            this.userService.currentTeam.subscribe((value) => {
+                if (value != null) {
+                    this.userService.getBoardsHistory()
+                        .then((boards: Array<Board>) => {
+                            this.boards(boards);
+                        }, (error: any) => {
+                            throw new Error("Error retreiving Historycal Boards [" + error + "]");
+                        });
+                }
+            });
+        }
     };
 
     public selectBoard = (board : Board) =>{

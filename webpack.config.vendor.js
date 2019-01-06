@@ -22,6 +22,7 @@ module.exports = (env) => {
                 'bootstrap/dist/css/bootstrap.css', 
                 'knockout', 
                 'feather-icons',
+                'core-js',
                 'knockout-mapping',
                 'popper.js',
                 'crossroads', 

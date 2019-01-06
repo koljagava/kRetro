@@ -1,8 +1,3 @@
-// vedi https://bootsnipp.com/snippets/featured/social-network-layout-bootstrap-4
-//      https://bootsnipp.com/snippets/0e5xd
-//      https://bootsnipp.com/snippets/8MmZ5
-
-
 import * as ko from 'knockout';
 import * as History from 'history';
 import { Route, Router } from '../../router';
@@ -12,13 +7,10 @@ import './app-root.css';
 
 // Declare the client-side routing configuration
 const routes: Route[] = [
-    // { url: '',              params: { page: 'home-page' }, canActivate : UserService.canActivate },
-    // { url: 'counter',       params: { page: 'counter-example',}, canActivate : UserService.canActivate },
-    // { url: 'fetch-data/:id:',    params: { page: 'fetch-data' }, canActivate : UserService.canActivate },
-    { url: 'register', params: { page: 'register' }},
-    { url: 'login/:caller:', params: { page: 'login' }},
+    { url: '#register', params: { page: 'register' }},
+    { url: '#login/:caller:', params: { page: 'login' }},
     { url: '', params: { page: 'board' }, canActivate : UserService.canActivate },
-    { url: 'history', params: { page: 'boards-history' }, canActivate : UserService.canActivate }
+    { url: '#history', params: { page: 'boards-history' }, canActivate : UserService.canActivate }
 ];
 
 class AppRootViewModel {

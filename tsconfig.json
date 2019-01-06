@@ -1,16 +1,17 @@
 {
-  "compilerOptions": {
-    "module": "es6",
-    "moduleResolution": "node",
-    "target": "es6",
-    "sourceMap": true,
-    "skipDefaultLibCheck": true,
-    "strict": true,
-    "types": ["webpack-env"],
-    "strictNullChecks": false
-  },
-  "exclude": [
-      "bin",
-      "node_modules"
-  ]
+    "compilerOptions": {
+        "module": "es6",
+        "moduleResolution": "node",
+        "target": "es5",
+        "lib" : ["es2017", "dom"],
+        "sourceMap": true,
+        "skipDefaultLibCheck": true,
+        "strict": true,
+        "types": [ "webpack-env" ],
+        "strictNullChecks": false
+    },
+    "exclude": [
+        "bin",
+        "node_modules"
+    ]
 }

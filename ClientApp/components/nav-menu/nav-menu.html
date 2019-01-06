@@ -9,21 +9,21 @@
     </div>
     <!-- ko if: userService.currentUser()==null -->
     <div class="knavmenu-item">
-        <a data-bind="attr:{href: router.link('login')}"><span data-bind="html:feather.icons['log-in'].toSvg()"></span><span>Login</span></a>
+        <a data-bind="attr:{href: router.link('#login')}"><span data-bind="html:feather.icons['log-in'].toSvg()"></span><span>Login</span></a>
     </div>
     <div class="knavmenu-item">
-        <a data-bind="attr:{href: router.link('register')}"><span data-bind="html:feather.icons['user'].toSvg()"></span><span>Register</span></a>
+        <a data-bind="attr:{href: router.link('#register')}"><span data-bind="html:feather.icons['user'].toSvg()"></span><span>Register</span></a>
     </div>
     <!-- /ko -->
     <!-- ko if: userService.currentUser()!=null -->
     <div class="knavmenu-item">
-        <a data-bind="attr:{href: router.link('register')}"><span data-bind="html:feather.icons['user'].toSvg()"></span><span>Hello <!-- ko text: userService.getUserName(userService.currentUser())--><!--/ko--></span></a>
+        <a data-bind="attr:{href: router.link('#register')}"><span data-bind="html:feather.icons['user'].toSvg()"></span><span>Hello <!-- ko text: userService.getUserName(userService.currentUser())--><!--/ko--></span></a>
     </div>
     <div class="knavmenu-item">
         <a data-bind="attr:{href: router.link('')}"><span data-bind="html:feather.icons['clipboard'].toSvg()"></span><span>Board</span></a>
     </div>
     <div class="knavmenu-item">
-        <a data-bind="attr:{href: router.link('history')}"><span data-bind="html:feather.icons['layers'].toSvg()"></span><span>Boards history</span></a>
+        <a data-bind="attr:{href: router.link('#history')}"><span data-bind="html:feather.icons['layers'].toSvg()"></span><span>Boards history</span></a>
     </div>
     <div class="knavmenu-item" data-bind="click: userService.logout">
         <span data-bind="html:feather.icons['log-out'].toSvg()"></span><span>Logout</span>
