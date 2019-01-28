@@ -96,6 +96,18 @@ export class BoardService {
         });
     }
 
+    public doCluster = (cardsIdToCluster: number[], clusterId: number): void => {
+        this.boardHub.invoke("DoCluster", cardsIdToCluster, clusterId).catch((reason:any)=>{
+            throw new Error(reason);
+        });
+    }
+
+    public doUnCluster = (cardsIdToUnCluster: number[]): void => {
+        this.boardHub.invoke("DoUnCluster", cardsIdToUnCluster).catch((reason:any)=>{
+            throw new Error(reason);
+        });
+    }
+
     public changeBoardStatus = () : void => {
         if (this.board()== null)
             throw new Error("board is not opened.");

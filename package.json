@@ -29,6 +29,7 @@
     "history": "^4.7.2",
     "isomorphic-fetch": "^2.2.1",
     "jquery": "^3.3.1",
+    "jqueryui": "^1.11.1",
     "knockout": "^3.4.2",
     "knockout-mapping": "^2.6.0",
     "popper.js": "^1.14.6"
@@ -41,6 +42,7 @@
     "@types/feather-icons": "^4.7.0",
     "@types/history": "^4.7.2",
     "@types/jquery": "^3.3.29",
+    "@types/jqueryui": "^1.12.6",
     "@types/knockout": "^3.4.63",
     "@types/knockout.mapping": "^2.0.33",
     "@types/signals": "^1.0.1",

@@ -21,6 +21,7 @@ namespace kRetro.BusinessLogic.Models.Persistency
         public string Message {get;set;}
         public User User {get;set;}
         public DateTime CreationDateTime {get;set;}
-        public bool Visible {get;set;}       
+        public bool Visible {get;set;}   
+        public int? ClusterId {get;set;}            
     }
 }

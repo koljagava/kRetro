@@ -7,10 +7,11 @@ import { CardBase } from '../../models/persistency/cardBase';
 import { RetroAction, RetroActionStatus } from '../../models/persistency/retroAction';
 import { BoardStatus, Board } from '../../models/persistency/board';
 import { User } from '../../models/persistency/user';
+import { ClustereCardBase } from '../../models/clusteredCard';
 
 interface IRetroActionManagerParams {
     board: KnockoutObservable<Board>;
-    card : CardBase
+    card : ClustereCardBase<CardBase>
     teamUsers : KnockoutObservableArray<User>
 }
 
@@ -18,7 +19,7 @@ export class RetroActionManagerViewModel {
     public userService = UserService;
     private _bootstrap = Boostrap;
     public feather =  feather;    
-    public card : KnockoutObservable<CardBase>;
+    public card : KnockoutObservable<ClustereCardBase<CardBase>>;
     public selectedFieldId : string = null;
     public boardStatus = BoardStatus;
     public board: KnockoutObservable<Board>;
@@ -56,7 +57,7 @@ export class RetroActionManagerViewModel {
         if (params.teamUsers == null){
             throw new Error("teamUsers can not be null");
         }
-        this.card = ko.observable<CardBase>(params.card);
+        this.card = ko.observable<ClustereCardBase<CardBase>>(params.card);
         this.board = params.board;
         this.teamUsers = params.teamUsers;
 
@@ -65,7 +66,7 @@ export class RetroActionManagerViewModel {
             if (this.card() != null &&
                 this.board()!=null &&
                 this.teamUsers().length != 0){
-                    acts = this.board().actions.filter((act)=> act.card.id ==this.card().id).map(act => {
+                    acts = this.card().getCardActions(this.board().actions).map(act => {
                         let teamUser : User;
                         if (act.inChargeTo!= null){
                             teamUser = this.teamUsers().find(usr => usr.id == act.inChargeTo.id);
@@ -95,7 +96,7 @@ export class RetroActionManagerViewModel {
             }
             if (this.board()!= null &&
                 this.board().status == this.boardStatus.ActionsOpened){
-                    acts.push(new RetroAction(this.card()));
+                    acts.push(new RetroAction(this.card().parentCard));
             }
             return acts;
         }).extend({ notify: 'always' });

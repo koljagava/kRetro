@@ -18,4 +18,5 @@ export class CardBase {
     public user: User | undefined;
     public creationDateTime: Date | undefined;
     public visible: boolean | undefined;
+    public clusterId: number | undefined;
 }

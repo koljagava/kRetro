@@ -8,6 +8,7 @@
     <RuntimeIdentifiers>win-x64;ubuntu-x64</RuntimeIdentifiers>
     <IsPackable>false</IsPackable>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <startupobject>kRetro.Program</startupobject>
   </PropertyGroup>
 
   <ItemGroup>

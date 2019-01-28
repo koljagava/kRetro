@@ -1,0 +1,6 @@
+.ui-selecting { background: #FECA40; }
+.ui-selected { background: #F39814; }
+.ui-dropedhere { background: greenyellow; }
+.uncluster-link {
+    cursor: pointer;
+}

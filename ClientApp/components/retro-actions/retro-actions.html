@@ -13,14 +13,29 @@
         <table class="table table-secondary">
             <thead>
                 <tr>
-                <th scope="col">Card</th>
-                <th scope="col">Votes</th>
-                <th scope="col">Actions</th>
+                    <th scope="col">&nbsp;</th>
+                    <th scope="col">Card</th>
+                    <th scope="col">Votes</th>
+                    <th scope="col">Actions</th>
                 </tr>
             </thead>
-            <tbody data-bind="foreach:cardsGood">
+            <tbody data-bind="clusterizable: cardsGood, oncluster:doCluster, clusterEnable:isUserManager">
                 <tr>
-                    <td data-bind="text:message"></td>
+                    <td class="cluster-handler">
+                            <!-- ko if : $parent.isUserManager()-->
+                            <span title="drag&drop for clustering" data-bind="html:$parent.feather.icons['paperclip'].toSvg({width:15, height:15, color:'black'})"></span>
+                            <!-- /ko -->
+                    </td>
+                    <td data-bind="foreach: cards">
+                        <div class="row align-items-start justify-content-start">
+                            <div class="col-2">
+                                <!-- ko if : $parent.cards.length != 1 && $parents[1].isUserManager()-->
+                                <span class="uncluster-link" title="uncluster" data-bind="click:$parents[1].doUnCluster , html:$parents[1].feather.icons['delete'].toSvg({width:10, height:10, color:'black'})"></span>
+                                <!-- /ko -->
+                            </div>
+                            <div class="col-10"><span data-bind="text:message"></span></div>
+                        </div>
+                    </td>
                     <td data-bind="text:votes.length"></td>
                     <td><retro-action-manager params="board:$parent.board, card:$data, teamUsers:$parent.teamUsers"></retro-action-manager></td>
                 </tr>
@@ -31,6 +46,7 @@
         <table class="table table-secondary">
             <thead>
                 <tr>
+                    <th scope="col">&nbsp;</th>
                     <th scope="col">Card</th>
                     <th scope="col" title="easy"><span data-bind="html:feather.icons['check-square'].toSvg({width:24, height:24, color:'darkblue'})"></span></th>
                     <th scope="col" title="significant"><span data-bind="html:feather.icons['star'].toSvg({width:24, height:24, color:'darkblue'})"></span></th>
@@ -39,12 +55,26 @@
                     <th scope="col">Actions</th>
                 </tr>        
             </thead>
-            <tbody data-bind="foreach:cardsBad">
+                <tbody data-bind="clusterizable:cardsBad, oncluster:doCluster, clusterEnable:isUserManager">
                 <tr>
-                    <td data-bind="text:message"></td>
-                    <td data-bind="text:$parent.voteCount($data, $parent.badVoteType.Easy)"></td>
-                    <td data-bind="text:$parent.voteCount($data, $parent.badVoteType.Significant)"></td>
-                    <td data-bind="text:$parent.voteCount($data, $parent.badVoteType.Unexpected)"></td>
+                    <td class="cluster-handler">
+                        <!-- ko if : $parent.isUserManager()-->
+                        <span title="drag&drop for clustering" data-bind="html:$parent.feather.icons['paperclip'].toSvg({width:15, height:15, color:'black'})"></span>
+                        <!-- /ko -->
+                    </td>
+                    <td data-bind="foreach: cards">
+                        <div class="row align-items-start justify-content-start">
+                            <div class="col-2">
+                                <!-- ko if : $parent.cards.length != 1 && $parents[1].isUserManager()-->
+                                <span class="uncluster-link" title="uncluster" data-bind="click:$parents[1].doUnCluster , html:$parents[1].feather.icons['delete'].toSvg({width:10, height:10, color:'black'})"></span>
+                                <!-- /ko -->
+                            </div>
+                            <div class="col-10"><span data-bind="text:message"></span></div>
+                        </div>        
+                    </td>
+                    <td data-bind="text:voteCount($parent.badVoteType.Easy)"></td>
+                    <td data-bind="text:voteCount($parent.badVoteType.Significant)"></td>
+                    <td data-bind="text:voteCount($parent.badVoteType.Unexpected)"></td>
                     <td data-bind="text:votes.length"></td>
                     <td><retro-action-manager params="board:$parent.board, card:$data, teamUsers:$parent.teamUsers"></retro-action-manager></td>
                 </tr>

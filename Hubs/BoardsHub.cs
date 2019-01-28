@@ -5,6 +5,7 @@ using kRetro.BusinessLogic.Context;
 using kRetro.BusinessLogic.Models.Comunication;
 using kRetro.BusinessLogic.Models.Persistency;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Generic;
 
 namespace kRetro.Hubs
 {
@@ -91,6 +92,14 @@ namespace kRetro.Hubs
 
         public Task UpdateAction(RetroAction action){
             return this._boardsManager.UpdateActionAsync(Context.ConnectionId, action);
+        }
+
+        public Task DoCluster(List<int> cardsIdToCluster, int clusterId){
+            return this._boardsManager.DoClusterAsync(Context.ConnectionId, cardsIdToCluster, clusterId);
+        }
+        
+        public Task DoUnCluster(List<int> cardsIdToUnCluster){
+            return this._boardsManager.DoUnClusterAsync(Context.ConnectionId, cardsIdToUnCluster);
         }
 
     }

@@ -101,6 +101,16 @@ namespace kRetro.BusinessLogic
             await GetBoardManager(connectionId).UpdateActionAsync(connectionId, action);
         }
 
+        internal async Task DoClusterAsync(string connectionId, List<int> cardsIdToCluster, int clusterId)
+        {
+            await GetBoardManager(connectionId).DoClusterAsync(connectionId, cardsIdToCluster, clusterId);
+        }
+
+        internal async Task DoUnClusterAsync(string connectionId, List<int> cardsIdToUnCluster)
+        {
+            await GetBoardManager(connectionId).DoClusterAsync(connectionId, cardsIdToUnCluster, null);
+        }
+
         internal async Task UpdateBoardConfigAsync(string connectionId, BoardConfig boardConfig){
             foreach (var board in Boards.Values.Where(b=> b.Team.BoardConfiguration.Id == boardConfig.Id))
             {
@@ -431,6 +441,45 @@ namespace kRetro.BusinessLogic
             {
                 _boardLock.Release();
             }            
+        }
+
+        internal async Task DoClusterAsync(string connectionId, List<int> cardsIdToCluster, int? clusterId)
+        {
+            await _boardLock.WaitAsync();
+            try
+            {
+                if (Board==null)
+                    throw new Exception("Board does not exists.");
+                using(var context = new LiteDbContext()){
+                    var boardCards = Board.WhatWorks.Cast<CardBase>().Concat(Board.WhatDoesnt).ToList();
+                    foreach(var cardId in cardsIdToCluster){
+                        var card = boardCards.Find(c=> c.Id == cardId);
+                        if (card != null){
+                            if (clusterId == null && card.ClusterId == null){
+                                var cluster = boardCards.Where(c=> c.ClusterId == card.Id).ToList();
+                                if (cluster.Count != 0) {
+                                    cluster[0].ClusterId = null;
+                                    context.Cards.Update(cluster[0]);
+                                    foreach(var ccard in cluster) {
+                                        if (ccard.Id != cluster[0].Id){
+                                            ccard.ClusterId = cluster[0].Id;
+                                            context.Cards.Update(ccard);
+                                        }
+                                    }
+                                }
+                            } else{
+                                card.ClusterId = clusterId;
+                                context.Cards.Update(card);
+                            }
+                        }
+                    }
+                }
+                await BroadcastBoardUpdate();
+            }
+            finally
+            {
+                _boardLock.Release();
+            }       
         }
 
         internal async Task ChangeBoardStatusAsync(bool isInternalCall){
